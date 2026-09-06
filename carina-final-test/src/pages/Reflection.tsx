@@ -35,21 +35,14 @@ export function Reflection() {
     return () => { alive = false; };
   }, []);
 
-  const data = useMemo(
-    () => buildReflectionData(transactions, categories, accounts, year, month),
-    [transactions, categories, accounts, year, month],
-  );
-  const annualData = useMemo(
-    () => buildReflectionAnnualData(transactions, categories, accounts, year),
-    [transactions, categories, accounts, year],
-  );
+  const data = useMemo(() => buildReflectionData(transactions, categories, accounts, year, month), [transactions, categories, accounts, year, month]);
+  const annualData = useMemo(() => buildReflectionAnnualData(transactions, categories, accounts, year), [transactions, categories, accounts, year]);
   const activeData = period === 'year' ? annualData : data;
 
   const personData = useMemo(() => {
     const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
     const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
     const totals = new Map<string, number>();
-
     transactions.forEach((transaction) => {
       const date = new Date(transaction.dateTime);
       if (transaction.flow === 'expense' && date >= start && date < end) {
@@ -57,41 +50,18 @@ export function Reflection() {
         totals.set(id, (totals.get(id) || 0) + transaction.amount);
       }
     });
-
-    const result = people
-      .map((person) => ({
-        id: person.id,
-        name: person.name,
-        amount: totals.get(person.id) || 0,
-      }))
-      .filter((item) => item.amount > 0);
-
+    const result = people.map((person) => ({ id: person.id, name: person.name, amount: totals.get(person.id) || 0 })).filter((item) => item.amount > 0);
     const noPersonAmount = totals.get('__none__') || 0;
-    if (noPersonAmount > 0) {
-      result.push({ id: '__none__', name: 'No person', amount: noPersonAmount });
-    }
+    if (noPersonAmount > 0) result.push({ id: '__none__', name: 'No person', amount: noPersonAmount });
     return result.sort((a, b) => b.amount - a.amount);
   }, [transactions, people, period, year, month]);
 
-  const title = period === 'year'
-    ? String(year)
-    : new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-  const currentList = mode === 'category'
-    ? activeData.category
-    : mode === 'account'
-      ? activeData.account
-      : mode === 'person'
-        ? personData
-        : activeData.trend;
+  const title = period === 'year' ? String(year) : new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const currentList = mode === 'category' ? activeData.category : mode === 'account' ? activeData.account : mode === 'person' ? personData : activeData.trend;
 
   const selectedTransactions = useMemo(() => {
     if (!selectedId) return [];
-
-    if (mode === 'trend') {
-      return filterReflectionTrendTransactions(transactions, selectedId);
-    }
-
+    if (mode === 'trend') return filterReflectionTrendTransactions(transactions, selectedId);
     if (mode === 'person') {
       const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
       const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
@@ -102,16 +72,14 @@ export function Reflection() {
         return matchesPeriod && transaction.flow === 'expense' && matchesPerson;
       });
     }
-
     return period === 'year'
       ? filterReflectionAnnualTransactions(transactions, year, mode, selectedId)
       : filterReflectionTransactions(transactions, year, month, mode, selectedId);
   }, [transactions, year, month, period, mode, selectedId]);
 
   function shift(delta: number) {
-    if (period === 'year') {
-      setYear((current) => current + delta);
-    } else {
+    if (period === 'year') setYear((current) => current + delta);
+    else {
       const d = new Date(year, month + delta, 1);
       setYear(d.getFullYear());
       setMonth(d.getMonth());
@@ -186,21 +154,14 @@ export function Reflection() {
       <div className="paper-panel reflection-analysis">
         <div className="panel-kicker">{mode === 'category' ? 'WHERE YOUR LIFE FLOWS' : mode === 'account' ? 'WHERE MONEY MOVES' : mode === 'person' ? 'WHO BENEFITS' : period === 'year' ? 'THE YEAR AT A GLANCE' : 'THE LAST SIX MONTHS'}</div>
         <h2>{mode === 'category' ? 'Spending by category' : mode === 'account' ? 'Spending by account' : mode === 'person' ? 'Spending by person' : period === 'year' ? 'Monthly money in motion' : 'Money in motion'}</h2>
-        {mode === 'trend' ? (
-          <ReflectionChart mode="trend" chartType="bar" data={currentList as any} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
-        ) : (
-          <ReflectionChart mode={mode} chartType={chartType} data={currentList as any} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
-        )}
+        <ReflectionChart mode={mode} chartType={mode === 'trend' ? 'bar' : chartType} data={currentList as any} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
 
         {selectedId && selectedTransactions.length > 0 && (
           <div className="reflection-drilldown">
             {mode === 'trend' ? (
               <div className="reflection-drilldown-head">
                 <div><span className="panel-kicker">DRILL DOWN</span><strong>{selectedName}</strong></div>
-                <span>
-                  <b className="positive">+¥{Math.abs(selectedTransactions.filter((t) => t.flow === 'income' && t.kind !== 'reimbursement').reduce((sum, t) => sum + t.amount, 0)).toFixed(2)}</b>{' '}
-                  <b>−¥{selectedTransactions.filter((t) => t.flow === 'expense').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}</b>
-                </span>
+                <span><b className="positive">+¥{Math.abs(selectedTransactions.filter((t) => t.flow === 'income' && t.kind !== 'reimbursement').reduce((sum, t) => sum + t.amount, 0)).toFixed(2)}</b>{' '}<b>−¥{selectedTransactions.filter((t) => t.flow === 'expense').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}</b></span>
               </div>
             ) : (
               <div className="reflection-drilldown-head"><div><span className="panel-kicker">DRILL DOWN</span><strong>{selectedName}</strong></div><span>¥{selectedTransactions.reduce((sum, t) => sum + t.amount, 0).toFixed(2)}</span></div>
@@ -212,9 +173,7 @@ export function Reflection() {
               </button>
             ))}
             {selectedTransactions.length > 6 && (
-              <button type="button" className="reflection-drilldown-toggle" onClick={() => setShowAllDrillDown((current) => !current)}>
-                {showAllDrillDown ? 'Show less' : `View all ${selectedTransactions.length}`}
-              </button>
+              <button type="button" className="reflection-drilldown-toggle" onClick={() => setShowAllDrillDown((current) => !current)}>{showAllDrillDown ? 'Show less' : `View all ${selectedTransactions.length}`}</button>
             )}
           </div>
         )}
@@ -223,7 +182,7 @@ export function Reflection() {
 
       <div className="reflection-note">
         <span className="script-caption">A small note</span>
-        <p>{activeData.expense === 0 ? 'Every ledger has quiet pages.' : activeData.netFlow >= 0 ? 'A {period === 'year' ? 'year' : 'month'} in balance is worth remembering.' : 'Some months are for spending. The ledger simply remembers.'}</p>
+        <p>{activeData.expense === 0 ? 'Every ledger has quiet pages.' : activeData.netFlow >= 0 ? `A ${period === 'year' ? 'year' : 'month'} in balance is worth remembering.` : 'Some months are for spending. The ledger simply remembers.'}</p>
       </div>
     </section>
   );
