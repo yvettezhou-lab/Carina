@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '@/database/db';
 import type { Account, Category, Person, Transaction } from '@/models';
 import { buildReflectionAnnualData, buildReflectionData, filterReflectionAnnualTransactions, filterReflectionTransactions, filterReflectionTrendTransactions } from '@/services/statistics';
+import type { ReflectionBreakdown } from '@/services/statistics';
 import { ReflectionChart } from '@/components/ReflectionChart';
 
 type ReflectionMode = 'category' | 'account' | 'person' | 'trend';
@@ -43,18 +44,24 @@ export function Reflection() {
     const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
     const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
     const totals = new Map<string, number>();
+    const counts = new Map<string, number>();
     transactions.forEach((transaction) => {
       const date = new Date(transaction.dateTime);
       if (transaction.flow === 'expense' && date >= start && date < end) {
         const id = transaction.personId || '__none__';
         totals.set(id, (totals.get(id) || 0) + transaction.amount);
+        counts.set(id, (counts.get(id) || 0) + 1);
       }
     });
-    const result: Array<{ id: string; name: string; amount: number }> = people
-      .map((person) => ({ id: person.id, name: person.name, amount: totals.get(person.id) || 0 }))
+    const total = Array.from(totals.values()).reduce((sum, amount) => sum + amount, 0);
+    const result: ReflectionBreakdown[] = people
+      .map((person) => {
+        const amount = totals.get(person.id) || 0;
+        return { id: person.id, name: person.name, amount, share: total ? amount / total : 0, transactionCount: counts.get(person.id) || 0 };
+      })
       .filter((item) => item.amount > 0);
     const noPersonAmount = totals.get('__none__') || 0;
-    if (noPersonAmount > 0) result.push({ id: '__none__', name: 'No person', amount: noPersonAmount });
+    if (noPersonAmount > 0) result.push({ id: '__none__', name: 'No person', amount: noPersonAmount, share: total ? noPersonAmount / total : 0, transactionCount: counts.get('__none__') || 0 });
     return result.sort((a, b) => b.amount - a.amount);
   }, [transactions, people, period, year, month]);
 
