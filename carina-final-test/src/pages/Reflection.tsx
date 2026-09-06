@@ -50,7 +50,9 @@ export function Reflection() {
         totals.set(id, (totals.get(id) || 0) + transaction.amount);
       }
     });
-    const result = people.map((person) => ({ id: person.id, name: person.name, amount: totals.get(person.id) || 0 })).filter((item) => item.amount > 0);
+    const result: Array<{ id: string; name: string; amount: number }> = people
+      .map((person) => ({ id: person.id, name: person.name, amount: totals.get(person.id) || 0 }))
+      .filter((item) => item.amount > 0);
     const noPersonAmount = totals.get('__none__') || 0;
     if (noPersonAmount > 0) result.push({ id: '__none__', name: 'No person', amount: noPersonAmount });
     return result.sort((a, b) => b.amount - a.amount);
@@ -58,7 +60,7 @@ export function Reflection() {
 
   const title = period === 'year' ? String(year) : new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-  const selectedTransactions = useMemo(() => {
+  const selectedTransactions = useMemo((): Transaction[] => {
     if (!selectedId) return [];
     if (mode === 'trend') return filterReflectionTrendTransactions(transactions, selectedId);
     if (mode === 'person') {
@@ -71,9 +73,14 @@ export function Reflection() {
         return matchesPeriod && transaction.flow === 'expense' && matchesPerson;
       });
     }
+    if (mode === 'category') {
+      return period === 'year'
+        ? filterReflectionAnnualTransactions(transactions, year, 'category', selectedId)
+        : filterReflectionTransactions(transactions, year, month, 'category', selectedId);
+    }
     return period === 'year'
-      ? filterReflectionAnnualTransactions(transactions, year, mode, selectedId)
-      : filterReflectionTransactions(transactions, year, month, mode, selectedId);
+      ? filterReflectionAnnualTransactions(transactions, year, 'account', selectedId)
+      : filterReflectionTransactions(transactions, year, month, 'account', selectedId);
   }, [transactions, year, month, period, mode, selectedId]);
 
   function shift(delta: number) {
