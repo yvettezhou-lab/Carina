@@ -26,20 +26,9 @@ export function EditTransaction() {
       db.people.toArray()
     ]);
     if(!t) return;
-
-    // Editing history must keep archived master data available when it is
-    // referenced by this transaction. Other archived items remain hidden.
-    const account = a.find(x => x.id === t.accountId);
-    const category = c.find(x => x.id === t.categoryId);
-    const person = t.personId ? p.find(x => x.id === t.personId) : undefined;
-
-    const visibleAccounts = a.filter(x => !x.isArchived || x.id === t.accountId)
-      .sort((x,y) => x.sortOrder - y.sortOrder);
-    const visibleCategories = c.filter(x => !x.isArchived || x.id === t.categoryId)
-      .sort((x,y) => x.sortOrder - y.sortOrder);
-    const visiblePeople = p.filter(x => !x.isArchived || x.id === t.personId)
-      .sort((x,y) => x.sortOrder - y.sortOrder);
-
+    const visibleAccounts = a.filter(x => !x.isArchived || x.id === t.accountId).sort((x,y) => x.sortOrder - y.sortOrder);
+    const visibleCategories = c.filter(x => !x.isArchived || x.id === t.categoryId).sort((x,y) => x.sortOrder - y.sortOrder);
+    const visiblePeople = p.filter(x => !x.isArchived || x.id === t.personId).sort((x,y) => x.sortOrder - y.sortOrder);
     setTx(t); setDescription(t.description); setAmount(String(t.amount));
     setAccountId(t.accountId); setCategoryId(t.categoryId); setPersonId(t.personId??'');
     setAccounts(visibleAccounts); setCategories(visibleCategories); setPeople(visiblePeople);
@@ -53,11 +42,11 @@ export function EditTransaction() {
     navigate('/transactions',{replace:true});
   }
 
-  if(!tx) return <section><header className="topbar"><h1>编辑记录</h1></header><div className="empty">记录不存在</div></section>;
+  if(!tx) return <section><header className="topbar"><button className="text-btn" onClick={()=>navigate(-1)}>返回</button><h1>编辑记录</h1></header><div className="empty">记录不存在</div></section>;
   const cats=categories.filter(c=>c.flow===tx.flow);
 
   return <section>
-    <header className="topbar"><button className="text-btn" onClick={()=>navigate(-1)}>返回</button><h1>编辑记录</h1><button className="text-btn" onClick={save}>保存</button></header>
+    <header className="topbar edit-record-header"><button className="text-btn edit-back" onClick={()=>navigate(-1)}>返回</button><h1>编辑记录</h1><span className="edit-header-spacer" aria-hidden="true" /></header>
     <div className="quick-form">
       <label>描述<input value={description} onChange={e=>setDescription(e.target.value)}/></label>
       <label>金额<input value={amount} onChange={e=>setAmount(e.target.value.replace(/[^\d.+\-*/×÷()\s]/g,''))} inputMode="decimal"/></label>
