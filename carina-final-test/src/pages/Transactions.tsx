@@ -62,7 +62,21 @@ export function Transactions() {
               onClick={() => navigate(item.kind === 'transfer' ? `/transfer/${item.id}` : `/transactions/${item.id}/edit`)}
             />
             <div className={`ledger-mark ${item.kind}`} aria-hidden="true">
-              {item.kind === 'transfer' ? <ArrowLeftRight size={18} strokeWidth={1.5}/> : <Feather size={19} strokeWidth={1.5}/>} 
+              {item.kind === 'transfer' ? <ArrowLeftRight size={18} strokeWidth={1.5}/> : (
+                <span
+                  className={`ledger-feather ${item.flow}`}
+                  style={{position:'relative',width:20,height:20,display:'grid',placeItems:'center'}}
+                >
+                  <Feather
+                    size={19}
+                    strokeWidth={1.5}
+                    style={{transform:item.flow === 'income' ? 'rotate(-28deg)' : 'rotate(28deg)'}}
+                  />
+                  {item.flow === 'income'
+                    ? <span style={{position:'absolute',right:-1,top:-2,fontSize:9,lineHeight:1,color:'var(--gold-soft)'}}>✦</span>
+                    : <span style={{position:'absolute',left:1,bottom:0,width:4,height:4,borderRadius:'50%',background:'var(--gold-soft)'}} />}
+                </span>
+              )}
             </div>
             <div className="ledger-copy">
               <strong>{item.description}</strong>
