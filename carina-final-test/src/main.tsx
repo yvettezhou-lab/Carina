@@ -4,6 +4,7 @@ import { RouterProvider } from 'react-router-dom';
 import { router } from '@/app/router';
 import { ensureSeedData } from '@/services/seed';
 import './styles.css';
+import './quick-entry-fix.css';
 
 class AppErrorBoundary extends React.Component<React.PropsWithChildren, { error: boolean }> {
   state = { error: false };
