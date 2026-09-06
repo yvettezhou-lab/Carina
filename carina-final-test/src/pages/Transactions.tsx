@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeftRight, Trash2 } from 'lucide-react';
+import { ArrowLeftRight, Feather, Trash2 } from 'lucide-react';
 import { db } from '@/database/db';
 import type { Transaction, Transfer } from '@/models';
 import { deleteTransaction } from '@/services/transactions';
@@ -61,7 +61,9 @@ export function Transactions() {
               aria-label={`Edit ${item.kind === 'transfer' ? 'transfer' : 'transaction'} ${item.description}`}
               onClick={() => navigate(item.kind === 'transfer' ? `/transfer/${item.id}` : `/transactions/${item.id}/edit`)}
             />
-            <div className={`ledger-mark ${item.kind}`}><span>{item.kind === 'transfer' ? '⇄' : item.flow === 'expense' ? '−' : '+'}</span></div>
+            <div className={`ledger-mark ${item.kind}`} aria-hidden="true">
+              {item.kind === 'transfer' ? <ArrowLeftRight size={18} strokeWidth={1.5}/> : <Feather size={19} strokeWidth={1.5}/>} 
+            </div>
             <div className="ledger-copy">
               <strong>{item.description}</strong>
               <span>{item.kind === 'transfer'
