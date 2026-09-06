@@ -4,11 +4,11 @@ import { BookOpen, Home, Compass, Feather, Sparkles } from 'lucide-react';
 import QuillIcon from '@/components/QuillIcon';
 
 const navItems = [
-  { to: '/', label: '主页', icon: Home },
-  { to: '/transactions', label: '账本', icon: BookOpen },
-  { to: '/settlement', label: '代收代付', icon: Feather },
-  { to: '/reflection', label: '回顾', icon: Compass },
-  { to: '/settings', label: '设置', icon: Sparkles },
+  { to: '/', label: 'Home', icon: Home },
+  { to: '/transactions', label: 'Ledger', icon: BookOpen },
+  { to: '/settlement', label: 'Settlement', icon: Feather },
+  { to: '/reflection', label: 'Reflection', icon: Compass },
+  { to: '/settings', label: 'Atelier', icon: Sparkles },
 ];
 
 export function Layout() {
