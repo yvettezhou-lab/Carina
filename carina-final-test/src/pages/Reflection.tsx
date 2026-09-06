@@ -57,7 +57,6 @@ export function Reflection() {
   }, [transactions, people, period, year, month]);
 
   const title = period === 'year' ? String(year) : new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const currentList = mode === 'category' ? activeData.category : mode === 'account' ? activeData.account : mode === 'person' ? personData : activeData.trend;
 
   const selectedTransactions = useMemo(() => {
     if (!selectedId) return [];
@@ -154,7 +153,18 @@ export function Reflection() {
       <div className="paper-panel reflection-analysis">
         <div className="panel-kicker">{mode === 'category' ? 'WHERE YOUR LIFE FLOWS' : mode === 'account' ? 'WHERE MONEY MOVES' : mode === 'person' ? 'WHO BENEFITS' : period === 'year' ? 'THE YEAR AT A GLANCE' : 'THE LAST SIX MONTHS'}</div>
         <h2>{mode === 'category' ? 'Spending by category' : mode === 'account' ? 'Spending by account' : mode === 'person' ? 'Spending by person' : period === 'year' ? 'Monthly money in motion' : 'Money in motion'}</h2>
-        <ReflectionChart mode={mode} chartType={mode === 'trend' ? 'bar' : chartType} data={currentList as any} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
+        {mode === 'trend' ? (
+          <ReflectionChart mode="trend" chartType="bar" data={activeData.trend} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
+        ) : (
+          <ReflectionChart
+            mode={mode}
+            chartType={chartType}
+            data={mode === 'category' ? activeData.category : mode === 'account' ? activeData.account : personData}
+            selectedId={selectedId}
+            onSelect={selectChart}
+            onToggleChart={toggleChartType}
+          />
+        )}
 
         {selectedId && selectedTransactions.length > 0 && (
           <div className="reflection-drilldown">
