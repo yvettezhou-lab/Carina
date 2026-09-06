@@ -155,15 +155,12 @@ export function Reflection() {
         <h2>{mode === 'category' ? 'Spending by category' : mode === 'account' ? 'Spending by account' : mode === 'person' ? 'Spending by person' : period === 'year' ? 'Monthly money in motion' : 'Money in motion'}</h2>
         {mode === 'trend' ? (
           <ReflectionChart mode="trend" chartType="bar" data={activeData.trend} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
+        ) : mode === 'category' ? (
+          <ReflectionChart mode="category" chartType={chartType} data={activeData.category} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
+        ) : mode === 'account' ? (
+          <ReflectionChart mode="account" chartType={chartType} data={activeData.account} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
         ) : (
-          <ReflectionChart
-            mode={mode}
-            chartType={chartType}
-            data={mode === 'category' ? activeData.category : mode === 'account' ? activeData.account : personData}
-            selectedId={selectedId}
-            onSelect={selectChart}
-            onToggleChart={toggleChartType}
-          />
+          <ReflectionChart mode="person" chartType={chartType} data={personData} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
         )}
 
         {selectedId && selectedTransactions.length > 0 && (
