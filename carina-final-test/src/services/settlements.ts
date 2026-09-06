@@ -41,26 +41,27 @@ export async function settleAdvances(i:{
   const difference=i.receivedAmount-expectedAmount;
   const now=Date.now();
 
-    let autoDifferenceCategoryId:string|undefined;
-    if(difference!==0){
-      const flow=difference>0?'income':'expense';
-      const existing=await db.categories
-        .filter(c=>c.flow===flow && c.name==='代付差额' && !c.isArchived)
-        .first();
+  let autoDifferenceCategoryId:string|undefined;
+  if(difference!==0){
+    const flow=difference>0?'income':'expense';
+    const existing=await db.categories
+      .filter(c=>c.flow===flow && c.name==='代付差额' && !c.isArchived)
+      .first();
 
-      if(existing){
-        autoDifferenceCategoryId=existing.id;
-      }else{
-        autoDifferenceCategoryId=uid();
-        await db.categories.add({
-          id:autoDifferenceCategoryId,
-          name:'代付差额',
-          flow,
-          sortOrder:999,
-          isArchived:false,
-        });
-      }
+    if(existing){
+      autoDifferenceCategoryId=existing.id;
+    }else{
+      autoDifferenceCategoryId=uid();
+      await db.categories.add({
+        id:autoDifferenceCategoryId,
+        name:'代付差额',
+        flow,
+        sortOrder:999,
+        isArchived:false,
+      });
     }
+  }
+
   const dateTime=i.dateTime??now;
   const settlementId=uid();
 
@@ -71,8 +72,9 @@ export async function settleAdvances(i:{
     db.settlements,
     async()=>{
       /*
-       * 1. 收回的本金进入收款账户。
-       *    这是资金回流，不计入 Income。
+       * 1. 收回本金进入收款账户。
+       *    reimbursement 是本金回流，不属于经营收入。
+       *    即使少收，也只记录实际收到的本金，绝不改写原代付金额。
        */
       if(i.receivedAmount>0){
         const reimbursement:Transaction={
@@ -94,26 +96,16 @@ export async function settleAdvances(i:{
       }
 
       /*
-       * 2. 原代付 Expense 调整为最终实际损失。
+       * 2. 原代付记录保持原始金额，仅标记为已结算。
        *
-       *    收足本金：原代付变成 0
-       *    少收：剩余差额保留在已结算代付中，继续作为 Expense
+       *    例如：原代付 300、实际收回 280
+       *    原记录仍为 Expense 300；新增 reimbursement +280。
+       *    账户实际净变化因此为 -20。
        *
-       *    多笔代付时，先按选择顺序全部冲掉，
-       *    未收回的差额留在最后一笔。
+       *    多笔代付同样不修改任何原始金额，避免破坏历史流水。
        */
-      let remainingToRecover=Math.min(i.receivedAmount,expectedAmount);
-
       for(const x of selected){
-        const unrecovered=Math.max(
-          0,
-          x.amount-Math.min(remainingToRecover,x.amount)
-        );
-
-        remainingToRecover=Math.max(0,remainingToRecover-x.amount);
-
         await db.transactions.update(x.id,{
-          amount:unrecovered,
           advanceStatus:'settled',
           settlementId,
           updatedAt:now,
@@ -121,7 +113,9 @@ export async function settleAdvances(i:{
       }
 
       /*
-       * 3. 多收 / 少收的真正差额。
+       * 3. 多收的真正差额计入收入。
+       *    少收不再额外创建 expense，因为损失已经体现在：
+       *    原始代付 Expense - 实际收回本金。
        */
       if(difference>0){
         if(!autoDifferenceCategoryId){
@@ -133,7 +127,7 @@ export async function settleAdvances(i:{
           description:'代付结算收益',
           amount:difference,
           accountId:i.accountId,
-          categoryId:autoDifferenceCategoryId!,
+          categoryId:autoDifferenceCategoryId,
           personId:i.personId,
           flow:'income',
           dateTime,
@@ -145,8 +139,6 @@ export async function settleAdvances(i:{
 
         await db.transactions.add(income);
       }
-
-      
 
       const settlement:Settlement={
         id:settlementId,
