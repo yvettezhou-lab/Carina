@@ -17,6 +17,16 @@ export type ReflectionTrendPoint = {
   expense: number;
 };
 
+export type ReflectionAnnualData = {
+  year: number;
+  income: number;
+  expense: number;
+  netFlow: number;
+  category: ReflectionBreakdown[];
+  account: ReflectionBreakdown[];
+  trend: ReflectionTrendPoint[];
+};
+
 export type ReflectionData = {
   income: number;
   expense: number;
@@ -33,8 +43,20 @@ function monthBounds(year: number, month: number) {
   };
 }
 
+function yearBounds(year: number) {
+  return {
+    start: new Date(year, 0, 1).getTime(),
+    end: new Date(year + 1, 0, 1).getTime(),
+  };
+}
+
 function monthTransactions(transactions: Transaction[], year: number, month: number) {
   const { start, end } = monthBounds(year, month);
+  return transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
+}
+
+function yearTransactions(transactions: Transaction[], year: number) {
+  const { start, end } = yearBounds(year);
   return transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
 }
 
@@ -66,6 +88,30 @@ function breakdown(
     .sort((a, b) => b.amount - a.amount);
 }
 
+function summarize(
+  transactions: Transaction[],
+  categories: Category[],
+  accounts: Account[],
+) {
+  const income = transactions
+    .filter((t) => t.flow === 'income' && t.kind !== 'reimbursement')
+    .reduce((sum, t) => sum + t.amount, 0);
+  const expense = transactions
+    .filter((t) => t.flow === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
+  const accountNames = new Map(accounts.map((a) => [a.id, a.name]));
+
+  return {
+    income,
+    expense,
+    netFlow: income - expense,
+    category: breakdown(transactions, 'categoryId', categoryNames),
+    account: breakdown(transactions, 'accountId', accountNames),
+  };
+}
+
 export function buildReflectionData(
   transactions: Transaction[],
   categories: Category[],
@@ -74,15 +120,7 @@ export function buildReflectionData(
   month: number,
 ): ReflectionData {
   const current = monthTransactions(transactions, year, month);
-  const income = current
-    .filter((t) => t.flow === 'income' && t.kind !== 'reimbursement')
-    .reduce((sum, t) => sum + t.amount, 0);
-  const expense = current
-    .filter((t) => t.flow === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
-  const accountNames = new Map(accounts.map((a) => [a.id, a.name]));
+  const summary = summarize(current, categories, accounts);
 
   const trend = Array.from({ length: 6 }, (_, index) => {
     const d = new Date(year, month - (5 - index), 1);
@@ -96,11 +134,32 @@ export function buildReflectionData(
   });
 
   return {
-    income,
-    expense,
-    netFlow: income - expense,
-    category: breakdown(current, 'categoryId', categoryNames),
-    account: breakdown(current, 'accountId', accountNames),
+    ...summary,
+    trend,
+  };
+}
+
+export function buildReflectionAnnualData(
+  transactions: Transaction[],
+  categories: Category[],
+  accounts: Account[],
+  year: number,
+): ReflectionAnnualData {
+  const current = yearTransactions(transactions, year);
+  const summary = summarize(current, categories, accounts);
+  const trend = Array.from({ length: 12 }, (_, month) => {
+    const rows = monthTransactions(transactions, year, month);
+    return {
+      key: `${year}-${month}`,
+      label: new Date(year, month, 1).toLocaleDateString('en-US', { month: 'short' }),
+      income: rows.filter((t) => t.flow === 'income' && t.kind !== 'reimbursement').reduce((sum, t) => sum + t.amount, 0),
+      expense: rows.filter((t) => t.flow === 'expense').reduce((sum, t) => sum + t.amount, 0),
+    };
+  });
+
+  return {
+    year,
+    ...summary,
     trend,
   };
 }
@@ -116,6 +175,16 @@ export function filterReflectionTransactions(
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
+export function filterReflectionAnnualTransactions(
+  transactions: Transaction[],
+  year: number,
+  mode: 'category' | 'account',
+  id: string,
+) {
+  const current = yearTransactions(transactions, year).filter((t) => t.flow === 'expense');
+  return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
+}
+
 export function filterReflectionTrendTransactions(
   transactions: Transaction[],
   id: string,
@@ -124,5 +193,5 @@ export function filterReflectionTrendTransactions(
   const year = Number(yearText);
   const month = Number(monthText);
   if (!Number.isInteger(year) || !Number.isInteger(month)) return [];
-  return monthTransactions(transactions, year, month).filter((t) => t.flow === 'income' && t.kind !== 'reimbursement' || t.flow === 'expense');
+  return monthTransactions(transactions, year, month).filter((t) => (t.flow === 'income' && t.kind !== 'reimbursement') || t.flow === 'expense');
 }
