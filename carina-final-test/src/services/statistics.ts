@@ -60,12 +60,16 @@ function yearTransactions(transactions: Transaction[], year: number) {
   return transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
 }
 
+function isCountedExpense(t: Transaction) {
+  return t.flow === 'expense' && t.kind !== 'advance';
+}
+
 function breakdown(
   transactions: Transaction[],
   key: 'categoryId' | 'accountId',
   names: Map<string, string>,
 ): ReflectionBreakdown[] {
-  const expenses = transactions.filter((t) => t.flow === 'expense');
+  const expenses = transactions.filter(isCountedExpense);
   const totals = new Map<string, { amount: number; count: number }>();
 
   for (const transaction of expenses) {
@@ -97,7 +101,7 @@ function summarize(
     .filter((t) => t.flow === 'income' && t.kind !== 'reimbursement')
     .reduce((sum, t) => sum + t.amount, 0);
   const expense = transactions
-    .filter((t) => t.flow === 'expense')
+    .filter(isCountedExpense)
     .reduce((sum, t) => sum + t.amount, 0);
 
   const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
@@ -129,7 +133,7 @@ export function buildReflectionData(
       key: `${d.getFullYear()}-${d.getMonth()}`,
       label: d.toLocaleDateString('en-US', { month: 'short' }),
       income: rows.filter((t) => t.flow === 'income' && t.kind !== 'reimbursement').reduce((sum, t) => sum + t.amount, 0),
-      expense: rows.filter((t) => t.flow === 'expense').reduce((sum, t) => sum + t.amount, 0),
+      expense: rows.filter(isCountedExpense).reduce((sum, t) => sum + t.amount, 0),
     };
   });
 
@@ -153,7 +157,7 @@ export function buildReflectionAnnualData(
       key: `${year}-${month}`,
       label: new Date(year, month, 1).toLocaleDateString('en-US', { month: 'short' }),
       income: rows.filter((t) => t.flow === 'income' && t.kind !== 'reimbursement').reduce((sum, t) => sum + t.amount, 0),
-      expense: rows.filter((t) => t.flow === 'expense').reduce((sum, t) => sum + t.amount, 0),
+      expense: rows.filter(isCountedExpense).reduce((sum, t) => sum + t.amount, 0),
     };
   });
 
@@ -171,7 +175,7 @@ export function filterReflectionTransactions(
   mode: 'category' | 'account',
   id: string,
 ) {
-  const current = monthTransactions(transactions, year, month).filter((t) => t.flow === 'expense');
+  const current = monthTransactions(transactions, year, month).filter(isCountedExpense);
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
@@ -181,7 +185,7 @@ export function filterReflectionAnnualTransactions(
   mode: 'category' | 'account',
   id: string,
 ) {
-  const current = yearTransactions(transactions, year).filter((t) => t.flow === 'expense');
+  const current = yearTransactions(transactions, year).filter(isCountedExpense);
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
@@ -193,5 +197,5 @@ export function filterReflectionTrendTransactions(
   const year = Number(yearText);
   const month = Number(monthText);
   if (!Number.isInteger(year) || !Number.isInteger(month)) return [];
-  return monthTransactions(transactions, year, month).filter((t) => (t.flow === 'income' && t.kind !== 'reimbursement') || t.flow === 'expense');
+  return monthTransactions(transactions, year, month).filter((t) => (t.flow === 'income' && t.kind !== 'reimbursement') || isCountedExpense(t));
 }
