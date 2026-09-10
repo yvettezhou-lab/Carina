@@ -13,12 +13,17 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
-        workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-        },
+      includeAssets: ['icon-512-v2.png'],
+      cleanupOutdatedCaches: true,
+      workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        navigateFallback: '/index.html',
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+      },
       manifest: {
+        id: '/',
         name: 'Carina',
         short_name: 'Carina',
         description: 'Personal local-first expense tracker',
@@ -27,8 +32,15 @@ export default defineConfig({
         display: 'standalone',
         start_url: '/',
         scope: '/',
-        icons: [{ src: '/icon-512-v2.png', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }]
-      }
-    })
-  ]
+        icons: [
+          {
+            src: '/icon-512-v2.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+      },
+    }),
+  ],
 });
