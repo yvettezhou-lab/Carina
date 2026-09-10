@@ -13,7 +13,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon-512-v2.png'],
+      includeAssets: ['apple-touch-icon-final.png'],
       cleanupOutdatedCaches: true,
       workbox: {
         skipWaiting: true,
@@ -34,7 +34,7 @@ export default defineConfig({
         scope: '/',
         icons: [
           {
-            src: '/icon-512-v2.png',
+            src: '/apple-touch-icon-final.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable',
