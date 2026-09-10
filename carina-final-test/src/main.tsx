@@ -15,19 +15,14 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, { error:
   }
 }
 
-async function bootstrap() {
-  try {
-    await ensureSeedData();
-  } catch (error) {
-    console.error('Carina bootstrap failed', error);
-  }
-  ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-      <AppErrorBoundary>
-        <RouterProvider router={router} />
-      </AppErrorBoundary>
-    </React.StrictMode>
-  );
-}
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <AppErrorBoundary>
+      <RouterProvider router={router} />
+    </AppErrorBoundary>
+  </React.StrictMode>
+);
 
-void bootstrap();
+void ensureSeedData().catch((error) => {
+  console.error('Carina bootstrap failed', error);
+});
