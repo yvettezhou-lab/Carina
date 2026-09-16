@@ -79,7 +79,7 @@ export function EditTransaction() {
   return <section>
     <header className="topbar edit-record-header"><button className="text-btn edit-back" onClick={()=>navigate(-1)}>返回</button><h1>编辑记录</h1><span className="edit-header-spacer" aria-hidden="true" /></header>
     <div className="quick-form">
-      <div className="quick-entry-meta" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',alignItems:'start'}}>
+      <div className="quick-entry-meta edit-record-meta" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',alignItems:'start'}}>
         <div className="quick-meta-field"><span>日期</span><HybridDatePicker value={dateTime} onChange={setDateTime}/></div>
         <div className="quick-meta-field"><span>时间</span><input type="time" value={dateTime.slice(11,16)} onChange={e=>setDateTime(`${dateTime.slice(0,11)}${e.target.value}`)} style={{height:'44px',minHeight:'44px',appearance:'none',WebkitAppearance:'none',textAlign:'center',lineHeight:'1.2'}}/></div>
       </div>
