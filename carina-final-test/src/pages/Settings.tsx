@@ -114,8 +114,23 @@ async function moveAccount(accountId: string, direction: -1 | 1) {
   }
 
   async function addCategory(){
-    const name=prompt('Expense category name');
-    if(name?.trim()) { await db.categories.add({id:uid(),name:name.trim(),flow:'expense',sortOrder:Date.now(),isArchived:false}); refresh(); }
+    const type=prompt('Category type: expense or income', 'expense');
+    if(type===null) return;
+    const normalizedType=type.trim().toLowerCase();
+    const flow=normalizedType==='income' ? 'income' : normalizedType==='expense' ? 'expense' : null;
+    if(!flow) return;
+
+    const name=prompt(`${flow==='expense'?'Expense':'Income'} category name`);
+    if(name?.trim()) {
+      await db.categories.add({
+        id:uid(),
+        name:name.trim(),
+        flow,
+        sortOrder:Date.now(),
+        isArchived:false
+      });
+      await refresh();
+    }
   }
   async function addPerson(){
     const name=prompt('Person name');
