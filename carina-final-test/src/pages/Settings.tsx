@@ -16,6 +16,9 @@ export function Settings() {
     const [editingAccount,setEditingAccount]=useState<(Account & { balance:number }) | null>(null);
     const [editName,setEditName]=useState('');
     const [editIncludeInNetWorth,setEditIncludeInNetWorth]=useState(true);
+  const [categoryEditorOpen,setCategoryEditorOpen]=useState(false);
+  const [categoryFlow,setCategoryFlow]=useState<'expense'|'income'>('expense');
+  const [categoryName,setCategoryName]=useState('');
 
   async function refresh(){
     const active = await db.accounts.filter(x=>!x.isArchived).sortBy('sortOrder');
@@ -113,24 +116,25 @@ async function moveAccount(accountId: string, direction: -1 | 1) {
     await refresh();
   }
 
-  async function addCategory(){
-    const type=prompt('Category type: expense or income', 'expense');
-    if(type===null) return;
-    const normalizedType=type.trim().toLowerCase();
-    const flow=normalizedType==='income' ? 'income' : normalizedType==='expense' ? 'expense' : null;
-    if(!flow) return;
+  function addCategory(){
+    setCategoryFlow('expense');
+    setCategoryName('');
+    setCategoryEditorOpen(true);
+  }
 
-    const name=prompt(`${flow==='expense'?'Expense':'Income'} category name`);
-    if(name?.trim()) {
-      await db.categories.add({
-        id:uid(),
-        name:name.trim(),
-        flow,
-        sortOrder:Date.now(),
-        isArchived:false
-      });
-      await refresh();
-    }
+  async function saveCategory(){
+    const name=categoryName.trim();
+    if(!name) return;
+    await db.categories.add({
+      id:uid(),
+      name,
+      flow:categoryFlow,
+      sortOrder:Date.now(),
+      isArchived:false
+    });
+    setCategoryEditorOpen(false);
+    setCategoryName('');
+    await refresh();
   }
   async function addPerson(){
     const name=prompt('Person name');
@@ -477,6 +481,55 @@ return <section>
       <div className="atelier-section">
         {categories.map(x=><div className="atelier-row" key={x.id}><span>{x.name}</span><em>{x.flow==='expense'?'Expense':'Income'}</em></div>)}
       <button className="atelier-add" onClick={addCategory}><Plus size={15}/> Add category</button>
+      {categoryEditorOpen && (
+        <div style={{
+          position:"fixed", inset:0, zIndex:1000,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          padding:"20px", background:"rgba(20,28,45,.18)"
+        }}>
+          <div style={{
+            width:"min(360px,calc(100vw - 40px))",
+            boxSizing:"border-box", padding:"24px",
+            background:"#fffdf7", color:"var(--ink)",
+            border:"1px solid var(--line)", borderRadius:"4px",
+            boxShadow:"0 20px 50px rgba(20,28,45,.22)"
+          }}>
+            <div style={{fontSize:"18px",fontWeight:600,marginBottom:"18px"}}>Add category</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"16px"}}>
+              <button type="button" onClick={()=>setCategoryFlow('expense')} style={{
+                padding:"10px", border:"1px solid rgba(100,80,55,.28)",
+                background:categoryFlow==='expense' ? "#111827" : "transparent",
+                color:categoryFlow==='expense' ? "#fff" : "inherit", font:"inherit"
+              }}>Expense</button>
+              <button type="button" onClick={()=>setCategoryFlow('income')} style={{
+                padding:"10px", border:"1px solid rgba(100,80,55,.28)",
+                background:categoryFlow==='income' ? "#111827" : "transparent",
+                color:categoryFlow==='income' ? "#fff" : "inherit", font:"inherit"
+              }}>Income</button>
+            </div>
+            <input
+              autoFocus
+              value={categoryName}
+              onChange={e=>setCategoryName(e.target.value)}
+              onKeyDown={e=>{if(e.key==='Enter') saveCategory(); if(e.key==='Escape') setCategoryEditorOpen(false)}}
+              placeholder={categoryFlow==='expense' ? 'Expense category name' : 'Income category name'}
+              style={{
+                width:"100%", boxSizing:"border-box", padding:"12px 13px",
+                border:"1px solid rgba(100,80,55,.28)", background:"transparent",
+                color:"inherit", font:"inherit", outline:"none", marginBottom:"18px"
+              }}
+            />
+            <div style={{display:"flex",justifyContent:"flex-end",gap:"18px",borderTop:"1px solid rgba(120,100,70,.14)",paddingTop:"16px"}}>
+              <button type="button" onClick={()=>setCategoryEditorOpen(false)} style={{border:0,background:"transparent",color:"inherit",font:"inherit",padding:"9px 4px"}}>Cancel</button>
+              <button type="button" onClick={saveCategory} disabled={!categoryName.trim()} style={{
+                border:"1px solid rgba(100,80,55,.35)", background:"transparent",
+                color:"inherit", font:"inherit", padding:"9px 20px",
+                opacity:categoryName.trim()?1:.45
+              }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
 
     <div className="atelier-section">
