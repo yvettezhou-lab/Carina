@@ -132,8 +132,8 @@ export function buildReflectionData(
     return {
       key: `${d.getFullYear()}-${d.getMonth()}`,
       label: d.toLocaleDateString('en-US', { month: 'short' }),
-      income: rows.filter((t) => t.flow === 'income' && t.kind !== 'reimbursement').reduce((sum, t) => sum + t.amount, 0),
-      expense: rows.filter(isCountedExpense).reduce((sum, t) => sum + t.amount, 0),
+      income: rows.filter((t) => isCountedIncome(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
+      expense: rows.filter((t) => isCountedExpense(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
     };
   });
 
@@ -197,5 +197,5 @@ export function filterReflectionTrendTransactions(
   const year = Number(yearText);
   const month = Number(monthText);
   if (!Number.isInteger(year) || !Number.isInteger(month)) return [];
-  return monthTransactions(transactions, year, month).filter((t) => (t.flow === 'income' && t.kind !== 'reimbursement') || isCountedExpense(t));
+  return monthTransactions(transactions, year, month).filter((t) => isCountedIncome(t, accounts) || isCountedExpense(t, accounts));
 }

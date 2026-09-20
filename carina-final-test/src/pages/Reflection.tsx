@@ -47,7 +47,7 @@ export function Reflection() {
     const counts = new Map<string, number>();
     transactions.forEach((transaction) => {
       const date = new Date(transaction.dateTime);
-      if (transaction.flow === 'expense' && date >= start && date < end) {
+      if (accounts.find((account) => account.id === transaction.accountId)?.includeInNetWorth !== false && transaction.flow === 'expense' && date >= start && date < end) {
         const id = transaction.personId || '__none__';
         totals.set(id, (totals.get(id) || 0) + transaction.amount);
         counts.set(id, (counts.get(id) || 0) + 1);
@@ -69,7 +69,7 @@ export function Reflection() {
 
   const selectedTransactions = useMemo((): Transaction[] => {
     if (!selectedId) return [];
-    if (mode === 'trend') return filterReflectionTrendTransactions(transactions, selectedId);
+    if (mode === 'trend') return filterReflectionTrendTransactions(transactions, selectedId, accounts);
     if (mode === 'person') {
       const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
       const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
@@ -82,12 +82,12 @@ export function Reflection() {
     }
     if (mode === 'category') {
       return period === 'year'
-        ? filterReflectionAnnualTransactions(transactions, year, 'category', selectedId)
-        : filterReflectionTransactions(transactions, year, month, 'category', selectedId);
+        ? filterReflectionAnnualTransactions(transactions, year, 'category', selectedId, accounts)
+        : filterReflectionTransactions(transactions, year, month, 'category', selectedId, accounts);
     }
     return period === 'year'
-      ? filterReflectionAnnualTransactions(transactions, year, 'account', selectedId)
-      : filterReflectionTransactions(transactions, year, month, 'account', selectedId);
+      ? filterReflectionAnnualTransactions(transactions, year, 'account', selectedId, accounts)
+      : filterReflectionTransactions(transactions, year, month, 'account', selectedId, accounts);
   }, [transactions, year, month, period, mode, selectedId]);
 
   function shift(delta: number) {
