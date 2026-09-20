@@ -37,17 +37,11 @@ export type ReflectionData = {
 };
 
 function monthBounds(year: number, month: number) {
-  return {
-    start: new Date(year, month, 1).getTime(),
-    end: new Date(year, month + 1, 1).getTime(),
-  };
+  return { start: new Date(year, month, 1).getTime(), end: new Date(year, month + 1, 1).getTime() };
 }
 
 function yearBounds(year: number) {
-  return {
-    start: new Date(year, 0, 1).getTime(),
-    end: new Date(year + 1, 0, 1).getTime(),
-  };
+  return { start: new Date(year, 0, 1).getTime(), end: new Date(year + 1, 0, 1).getTime() };
 }
 
 function monthTransactions(transactions: Transaction[], year: number, month: number) {
@@ -60,16 +54,25 @@ function yearTransactions(transactions: Transaction[], year: number) {
   return transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
 }
 
-function isCountedExpense(t: Transaction) {
-  return t.flow === 'expense' && t.kind !== 'advance';
+function isOwnAccount(t: Transaction, accounts: Account[]) {
+  return accounts.find((account) => account.id === t.accountId)?.includeInNetWorth !== false;
+}
+
+function isCountedIncome(t: Transaction, accounts: Account[]) {
+  return isOwnAccount(t, accounts) && t.flow === 'income' && t.kind !== 'reimbursement';
+}
+
+function isCountedExpense(t: Transaction, accounts: Account[]) {
+  return isOwnAccount(t, accounts) && t.flow === 'expense' && t.kind !== 'advance';
 }
 
 function breakdown(
   transactions: Transaction[],
   key: 'categoryId' | 'accountId',
   names: Map<string, string>,
+  accounts: Account[],
 ): ReflectionBreakdown[] {
-  const expenses = transactions.filter(isCountedExpense);
+  const expenses = transactions.filter((t) => isCountedExpense(t, accounts));
   const totals = new Map<string, { amount: number; count: number }>();
 
   for (const transaction of expenses) {
@@ -92,16 +95,12 @@ function breakdown(
     .sort((a, b) => b.amount - a.amount);
 }
 
-function summarize(
-  transactions: Transaction[],
-  categories: Category[],
-  accounts: Account[],
-) {
+function summarize(transactions: Transaction[], categories: Category[], accounts: Account[]) {
   const income = transactions
-    .filter((t) => t.flow === 'income' && t.kind !== 'reimbursement')
+    .filter((t) => isCountedIncome(t, accounts))
     .reduce((sum, t) => sum + t.amount, 0);
   const expense = transactions
-    .filter(isCountedExpense)
+    .filter((t) => isCountedExpense(t, accounts))
     .reduce((sum, t) => sum + t.amount, 0);
 
   const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
@@ -111,8 +110,8 @@ function summarize(
     income,
     expense,
     netFlow: income - expense,
-    category: breakdown(transactions, 'categoryId', categoryNames),
-    account: breakdown(transactions, 'accountId', accountNames),
+    category: breakdown(transactions, 'categoryId', categoryNames, accounts),
+    account: breakdown(transactions, 'accountId', accountNames, accounts),
   };
 }
 
@@ -137,10 +136,7 @@ export function buildReflectionData(
     };
   });
 
-  return {
-    ...summary,
-    trend,
-  };
+  return { ...summary, trend };
 }
 
 export function buildReflectionAnnualData(
@@ -156,16 +152,12 @@ export function buildReflectionAnnualData(
     return {
       key: `${year}-${month}`,
       label: new Date(year, month, 1).toLocaleDateString('en-US', { month: 'short' }),
-      income: rows.filter((t) => t.flow === 'income' && t.kind !== 'reimbursement').reduce((sum, t) => sum + t.amount, 0),
-      expense: rows.filter(isCountedExpense).reduce((sum, t) => sum + t.amount, 0),
+      income: rows.filter((t) => isCountedIncome(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
+      expense: rows.filter((t) => isCountedExpense(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
     };
   });
 
-  return {
-    year,
-    ...summary,
-    trend,
-  };
+  return { year, ...summary, trend };
 }
 
 export function filterReflectionTransactions(
@@ -174,8 +166,9 @@ export function filterReflectionTransactions(
   month: number,
   mode: 'category' | 'account',
   id: string,
+  accounts: Account[],
 ) {
-  const current = monthTransactions(transactions, year, month).filter(isCountedExpense);
+  const current = monthTransactions(transactions, year, month).filter((t) => isCountedExpense(t, accounts));
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
@@ -184,18 +177,22 @@ export function filterReflectionAnnualTransactions(
   year: number,
   mode: 'category' | 'account',
   id: string,
+  accounts: Account[],
 ) {
-  const current = yearTransactions(transactions, year).filter(isCountedExpense);
+  const current = yearTransactions(transactions, year).filter((t) => isCountedExpense(t, accounts));
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
 export function filterReflectionTrendTransactions(
   transactions: Transaction[],
   id: string,
+  accounts: Account[],
 ) {
   const [yearText, monthText] = id.split('-');
   const year = Number(yearText);
   const month = Number(monthText);
   if (!Number.isInteger(year) || !Number.isInteger(month)) return [];
-  return monthTransactions(transactions, year, month).filter((t) => isCountedIncome(t, accounts) || isCountedExpense(t, accounts));
+  return monthTransactions(transactions, year, month).filter(
+    (t) => isCountedIncome(t, accounts) || isCountedExpense(t, accounts),
+  );
 }
