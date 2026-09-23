@@ -50,4 +50,7 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 
 /* Keep the Dashboard quick actions clear of the floating record button. */
 .dashboard-shell .fab{bottom:calc(28px + env(safe-area-inset-bottom));}
+/* Keep the Ledger header action above any page/list hit areas on touch devices. */
+.inner-head{position:relative;z-index:10;}
+.inner-head .outline-button{position:relative;z-index:11;pointer-events:auto;touch-action:manipulation;}
 .transfer-error{padding:10px 12px;border:1px solid rgba(160,75,55,.28);background:rgba(255,245,238,.75);color:#8a4938;border-radius:4px;font-size:12px;line-height:1.4;}
