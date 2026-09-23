@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeftRight, Feather, Filter, Trash2, X } from 'lucide-react';
 import { db } from '@/database/db';
-import type { Transaction, Transfer } from '@/models';
+import type { Account, Category, Person, Transaction, Transfer } from '@/models';
 import { deleteTransaction } from '@/services/transactions';
 import { useNavigate } from 'react-router-dom';
 
 type LedgerItem = {
   id: string; kind: 'transaction'|'transfer'; dateTime: number; description: string;
   amount: number; flow: 'income'|'expense'; category: string; account?: string; otherAccount?: string;
+  categoryId?: string; accountId?: string; otherAccountId?: string; personId?: string;
 };
 
 export function Transactions() {
@@ -32,8 +33,8 @@ export function Transactions() {
       db.accounts.toArray(),
       db.categories.toArray(),\n      db.people.toArray()
     ]);
-    const accountNames = Object.fromEntries(accounts.map(x => [x.id,x.name]));
-    const categoryNames = Object.fromEntries(categories.map(x => [x.id,x.name]));
+    const accountNames = Object.fromEntries(accountRows.map(x => [x.id,x.name]));
+    const categoryNames = Object.fromEntries(categoryRows.map(x => [x.id,x.name]));
     const normal: LedgerItem[] = tx.map((t: Transaction) => ({
       id:t.id, kind:'transaction', dateTime:t.dateTime, description:t.description, amount:t.amount,
       flow:t.flow, category:categoryNames[t.categoryId] ?? 'Uncategorized', categoryId:t.categoryId, account:accountNames[t.accountId], accountId:t.accountId, personId:t.personId
