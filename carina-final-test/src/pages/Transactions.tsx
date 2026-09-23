@@ -148,9 +148,6 @@ export function Transactions() {
           <div className="script-title">Ledger</div>
           <div className="brand-subtitle">EVERY ENTRY MATTERS</div>
         </div>
-        <button className="outline-button" onClick={() => navigate('/transfer')}>
-          <ArrowLeftRight size={15} /> Transfer
-        </button>
       </header>
 
       <div className="ledger-filter-toolbar">
