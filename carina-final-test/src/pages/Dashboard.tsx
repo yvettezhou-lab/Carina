@@ -1,6 +1,6 @@
 import { calculateNetWorth } from '@/services/netWorth';
 import { useEffect, useState } from 'react';
-import { ArrowRight, Landmark, WalletCards, Banknote, CreditCard, Plus, ArrowLeftRight } from 'lucide-react';
+import { ArrowRight, Landmark, WalletCards, Banknote, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '@/database/db';
 import { getAccountBalance } from '@/services/balance';
@@ -59,11 +59,6 @@ export function Dashboard() {
         })}
       </div>
 
-      <div className="quick-actions">
-        <button onClick={() => navigate('/quick-entry')}><Plus size={17}/> Record</button>
-        <button onClick={() => navigate('/transfer')}><ArrowLeftRight size={17}/> Transfer</button>
-        <button onClick={() => navigate('/reflection')}><ArrowRight size={17}/> Reflection</button>
-      </div>
     </section>
   );
 }
