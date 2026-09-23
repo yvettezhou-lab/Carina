@@ -18,6 +18,7 @@ export function Transfer() {
   });
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     db.accounts
@@ -32,8 +33,11 @@ export function Transfer() {
 
   async function save() {
     const n = evaluateAmountExpression(amount);
-    if (!from || !to || from === to || !Number.isFinite(n) || n <= 0) return;
+    if (!from || !to) { setError('Please choose both accounts.'); return; }
+    if (from === to) { setError('Transfer must use two different accounts.'); return; }
+    if (!Number.isFinite(n) || n <= 0) { setError('Please enter a valid amount greater than 0.'); return; }
 
+    setError('');
     setSaving(true);
     try {
       await createTransfer({
