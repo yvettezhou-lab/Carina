@@ -1,5 +1,5 @@
 import quillGold from '@/assets/quill-gold.png?inline';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { BookOpen, Home, Compass, Feather, Sparkles } from 'lucide-react';
 import QuillIcon from '@/components/QuillIcon';
 
@@ -13,8 +13,10 @@ const navItems = [
 
 export function Layout() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isDashboard = location.pathname === '/';
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isDashboard ? ' dashboard-shell' : ''}`}>
       <main className="page"><Outlet /></main>
       <button className="fab" aria-label="Record a transaction" title="Record" onClick={() => navigate('/quick-entry')}>
         <img src={quillGold} className="fab-quill" />
