@@ -12,20 +12,22 @@ type ReflectionPeriod = 'month' | 'year';
 function collapseForDrillDown(transactions: Transaction[]): Transaction[] {
   const grouped = new Map<string, Transaction[]>();
 
-  for (const transaction of transactions) {
-    const key = transaction.groupId
-      ? `group:${transaction.groupId}`
-      : transaction.personId
-        ? `legacy:${transaction.dateTime}|${transaction.accountId}|${transaction.categoryId}|${transaction.flow}|${transaction.kind ?? ''}|${transaction.advanceStatus ?? ''}|${transaction.description.trim()}`
-        : `single:${transaction.id}`;
-    const rows = grouped.get(key) ?? [];
-    rows.push(transaction);
-    grouped.set(key, rows);
-  }
+  transactions.forEach((transaction) => {
+    let key = `single:${transaction.id}`;
+    if (transaction.groupId) {
+      key = `group:${transaction.groupId}`;
+    } else if (transaction.personId) {
+      key = `legacy:${transaction.dateTime}|${transaction.accountId}|${transaction.categoryId}|${transaction.flow}|${transaction.kind ?? ''}|${transaction.advanceStatus ?? ''}|${transaction.description.trim()}`;
+    }
+
+    const rows = grouped.get(key);
+    if (rows) rows.push(transaction);
+    else grouped.set(key, [transaction]);
+  });
 
   return Array.from(grouped.values()).map((rows) => {
-    if (rows.length === 1) return rows[0];
-    const first = rows[0];
+    if (rows.length === 1) return rows[0]!;
+    const first = rows[0]!;
     return {
       ...first,
       amount: rows.reduce((sum, row) => sum + row.amount, 0),
