@@ -18,7 +18,8 @@ type LedgerItem = {
   accountId?: string;
   otherAccount?: string;
   otherAccountId?: string;
-  personId?: string;
+  personIds: string[];
+  transactionIds: string[];
 };
 
 export function Transactions() {
@@ -48,19 +49,35 @@ export function Transactions() {
     const accountNames = Object.fromEntries(accountRows.map(x => [x.id, x.name]));
     const categoryNames = Object.fromEntries(categoryRows.map(x => [x.id, x.name]));
 
-    const normal: LedgerItem[] = tx.map((t: Transaction) => ({
-      id: t.id,
-      kind: 'transaction',
-      dateTime: t.dateTime,
-      description: t.description,
-      amount: t.amount,
-      flow: t.flow,
-      category: categoryNames[t.categoryId] ?? 'Uncategorized',
-      categoryId: t.categoryId,
-      account: accountNames[t.accountId],
-      accountId: t.accountId,
-      personId: t.personId
-    }));
+    const grouped = new Map<string, Transaction[]>();
+    for (const t of tx) {
+      const key = t.groupId
+        ? `group:${t.groupId}`
+        : t.personId
+          ? `legacy:${t.dateTime}|${t.accountId}|${t.categoryId}|${t.flow}|${t.kind ?? ''}|${t.advanceStatus ?? ''}|${t.description.trim()}`
+          : `single:${t.id}`;
+      const rows = grouped.get(key) ?? [];
+      rows.push(t);
+      grouped.set(key, rows);
+    }
+
+    const normal: LedgerItem[] = Array.from(grouped.values()).map((rows) => {
+      const first = rows[0];
+      return {
+        id: first.id,
+        kind: 'transaction',
+        dateTime: first.dateTime,
+        description: first.description,
+        amount: rows.reduce((sum, row) => sum + row.amount, 0),
+        flow: first.flow,
+        category: categoryNames[first.categoryId] ?? 'Uncategorized',
+        categoryId: first.categoryId,
+        account: accountNames[first.accountId],
+        accountId: first.accountId,
+        personIds: rows.map(row => row.personId).filter((id): id is string => Boolean(id)),
+        transactionIds: rows.map(row => row.id)
+      };
+    });
 
     const transferRows: LedgerItem[] = transfers.map((t: Transfer) => ({
       id: t.id,
@@ -73,7 +90,9 @@ export function Transactions() {
       account: accountNames[t.fromAccountId],
       accountId: t.fromAccountId,
       otherAccount: accountNames[t.toAccountId],
-      otherAccountId: t.toAccountId
+      otherAccountId: t.toAccountId,
+      personIds: [],
+      transactionIds: []
     }));
 
     setAccounts(accountRows);
@@ -99,7 +118,7 @@ export function Transactions() {
           (item.kind !== 'transaction' || item.flow !== flowFilter)) return false;
       if (categoryFilter && (item.kind !== 'transaction' || item.categoryId !== categoryFilter)) return false;
       if (accountFilter && item.accountId !== accountFilter && item.otherAccountId !== accountFilter) return false;
-      if (personFilter && (item.kind !== 'transaction' || item.personId !== personFilter)) return false;
+      if (personFilter && (item.kind !== 'transaction' || !item.personIds.includes(personFilter))) return false;
       if (
         q &&
         !item.description.toLowerCase().includes(q) &&
@@ -136,7 +155,7 @@ export function Transactions() {
     if (item.kind === 'transfer') {
       await db.transfers.delete(item.id);
     } else {
-      await deleteTransaction(item.id);
+      await Promise.all(item.transactionIds.map(id => deleteTransaction(id)));
     }
     await refresh();
   }
