@@ -9,6 +9,30 @@ import { ReflectionChart } from '@/components/ReflectionChart';
 type ReflectionMode = 'category' | 'account' | 'person' | 'trend';
 type ReflectionPeriod = 'month' | 'year';
 
+function collapseForDrillDown(transactions: Transaction[]): Transaction[] {
+  const grouped = new Map<string, Transaction[]>();
+
+  for (const transaction of transactions) {
+    const key = transaction.groupId
+      ? `group:${transaction.groupId}`
+      : transaction.personId
+        ? `legacy:${transaction.dateTime}|${transaction.accountId}|${transaction.categoryId}|${transaction.flow}|${transaction.kind ?? ''}|${transaction.advanceStatus ?? ''}|${transaction.description.trim()}`
+        : `single:${transaction.id}`;
+    const rows = grouped.get(key) ?? [];
+    rows.push(transaction);
+    grouped.set(key, rows);
+  }
+
+  return Array.from(grouped.values()).map((rows) => {
+    if (rows.length === 1) return rows[0];
+    const first = rows[0];
+    return {
+      ...first,
+      amount: rows.reduce((sum, row) => sum + row.amount, 0),
+    };
+  });
+}
+
 export function Reflection() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -63,13 +87,13 @@ export function Reflection() {
     const noPersonAmount = totals.get('__none__') || 0;
     if (noPersonAmount > 0) result.push({ id: '__none__', name: 'No person', amount: noPersonAmount, share: total ? noPersonAmount / total : 0, transactionCount: counts.get('__none__') || 0 });
     return result.sort((a, b) => b.amount - a.amount);
-  }, [transactions, people, period, year, month]);
+  }, [transactions, people, accounts, period, year, month]);
 
   const title = period === 'year' ? String(year) : new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   const selectedTransactions = useMemo((): Transaction[] => {
     if (!selectedId) return [];
-    if (mode === 'trend') return filterReflectionTrendTransactions(transactions, selectedId, accounts);
+    if (mode === 'trend') return collapseForDrillDown(filterReflectionTrendTransactions(transactions, selectedId, accounts));
     if (mode === 'person') {
       const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
       const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
@@ -81,14 +105,16 @@ export function Reflection() {
       });
     }
     if (mode === 'category') {
-      return period === 'year'
+      const rows = period === 'year'
         ? filterReflectionAnnualTransactions(transactions, year, 'category', selectedId, accounts)
         : filterReflectionTransactions(transactions, year, month, 'category', selectedId, accounts);
+      return collapseForDrillDown(rows);
     }
-    return period === 'year'
+    const rows = period === 'year'
       ? filterReflectionAnnualTransactions(transactions, year, 'account', selectedId, accounts)
       : filterReflectionTransactions(transactions, year, month, 'account', selectedId, accounts);
-  }, [transactions, year, month, period, mode, selectedId]);
+    return collapseForDrillDown(rows);
+  }, [transactions, accounts, year, month, period, mode, selectedId]);
 
   function shift(delta: number) {
     if (period === 'year') setYear((current) => current + delta);
