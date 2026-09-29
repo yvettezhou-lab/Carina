@@ -55,7 +55,7 @@ function yearTransactions(transactions: Transaction[], year: number) {
 }
 
 
-function collapseGroupedTransactions(transactions: Transaction[]) {
+function collapseGroupedTransactions(transactions: Transaction[]): Transaction[] {
   const grouped = new Map<string, Transaction[]>();
 
   for (const transaction of transactions) {
@@ -75,7 +75,6 @@ function collapseGroupedTransactions(transactions: Transaction[]) {
     return {
       ...first,
       amount: rows.reduce((sum, row) => sum + row.amount, 0),
-      personId: undefined,
     };
   });
 }
