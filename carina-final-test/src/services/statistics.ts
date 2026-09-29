@@ -122,7 +122,7 @@ function breakdown(
 }
 
 function summarize(transactions: Transaction[], categories: Category[], accounts: Account[]) {
-  const income = transactions
+  const income = collapseGroupedTransactions(transactions)
     .filter((t) => isCountedIncome(t, accounts))
     .reduce((sum, t) => sum + t.amount, 0);
   const expense = transactions
