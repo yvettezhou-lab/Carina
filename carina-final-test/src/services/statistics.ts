@@ -54,31 +54,6 @@ function yearTransactions(transactions: Transaction[], year: number) {
   return transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
 }
 
-
-function collapseGroupedTransactions(transactions: Transaction[]): Transaction[] {
-  const grouped = new Map<string, Transaction[]>();
-
-  for (const transaction of transactions) {
-    const key = transaction.groupId
-      ? `group:${transaction.groupId}`
-      : transaction.personId
-        ? `legacy:${transaction.dateTime}|${transaction.accountId}|${transaction.categoryId}|${transaction.flow}|${transaction.kind ?? ''}|${transaction.advanceStatus ?? ''}|${transaction.description.trim()}`
-        : `single:${transaction.id}`;
-    const rows = grouped.get(key) ?? [];
-    rows.push(transaction);
-    grouped.set(key, rows);
-  }
-
-  return Array.from(grouped.values()).map((rows) => {
-    if (rows.length === 1) return rows[0];
-    const first = rows[0];
-    return {
-      ...first,
-      amount: rows.reduce((sum, row) => sum + row.amount, 0),
-    };
-  });
-}
-
 function isOwnAccount(t: Transaction, accounts: Account[]) {
   return accounts.find((account) => account.id === t.accountId)?.includeInNetWorth !== false;
 }
@@ -97,7 +72,7 @@ function breakdown(
   names: Map<string, string>,
   accounts: Account[],
 ): ReflectionBreakdown[] {
-  const expenses = collapseGroupedTransactions(transactions).filter((t) => isCountedExpense(t, accounts));
+  const expenses = transactions.filter((t) => isCountedExpense(t, accounts));
   const totals = new Map<string, { amount: number; count: number }>();
 
   for (const transaction of expenses) {
@@ -121,10 +96,10 @@ function breakdown(
 }
 
 function summarize(transactions: Transaction[], categories: Category[], accounts: Account[]) {
-  const income = collapseGroupedTransactions(transactions)
+  const income = transactions
     .filter((t) => isCountedIncome(t, accounts))
     .reduce((sum, t) => sum + t.amount, 0);
-  const expense = collapseGroupedTransactions(transactions)
+  const expense = transactions
     .filter((t) => isCountedExpense(t, accounts))
     .reduce((sum, t) => sum + t.amount, 0);
 
@@ -156,8 +131,8 @@ export function buildReflectionData(
     return {
       key: `${d.getFullYear()}-${d.getMonth()}`,
       label: d.toLocaleDateString('en-US', { month: 'short' }),
-      income: collapseGroupedTransactions(rows).filter((t) => isCountedIncome(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
-      expense: collapseGroupedTransactions(rows).filter((t) => isCountedExpense(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
+      income: rows.filter((t) => isCountedIncome(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
+      expense: rows.filter((t) => isCountedExpense(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
     };
   });
 
@@ -177,8 +152,8 @@ export function buildReflectionAnnualData(
     return {
       key: `${year}-${month}`,
       label: new Date(year, month, 1).toLocaleDateString('en-US', { month: 'short' }),
-      income: collapseGroupedTransactions(rows).filter((t) => isCountedIncome(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
-      expense: collapseGroupedTransactions(rows).filter((t) => isCountedExpense(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
+      income: rows.filter((t) => isCountedIncome(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
+      expense: rows.filter((t) => isCountedExpense(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
     };
   });
 
@@ -193,7 +168,7 @@ export function filterReflectionTransactions(
   id: string,
   accounts: Account[],
 ) {
-  const current = collapseGroupedTransactions(monthTransactions(transactions, year, month)).filter((t) => isCountedExpense(t, accounts));
+  const current = monthTransactions(transactions, year, month).filter((t) => isCountedExpense(t, accounts));
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
@@ -204,7 +179,7 @@ export function filterReflectionAnnualTransactions(
   id: string,
   accounts: Account[],
 ) {
-  const current = collapseGroupedTransactions(yearTransactions(transactions, year)).filter((t) => isCountedExpense(t, accounts));
+  const current = yearTransactions(transactions, year).filter((t) => isCountedExpense(t, accounts));
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
@@ -217,7 +192,7 @@ export function filterReflectionTrendTransactions(
   const year = Number(yearText);
   const month = Number(monthText);
   if (!Number.isInteger(year) || !Number.isInteger(month)) return [];
-  return collapseGroupedTransactions(monthTransactions(transactions, year, month)).filter(
+  return monthTransactions(transactions, year, month).filter(
     (t) => isCountedIncome(t, accounts) || isCountedExpense(t, accounts),
   );
 }
