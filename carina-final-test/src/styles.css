@@ -79,3 +79,36 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 .settlement-submit{margin-top:14px}
 .settlement-message{margin-top:10px;text-align:center;font-size:14px;color:var(--ink-soft)}
 @media (max-width: 640px){.settlement-section{padding:14px}.settlement-field-grid{grid-template-columns:1fr}}
+
+/* Settlement mobile compact layout: keep the full workflow above the fixed nav. */
+.settlement-form{gap:9px}
+.settlement-intro{margin-bottom:9px;font-size:18px;line-height:1.2}
+.settlement-intro p{margin:4px 0 0}
+.settlement-section{padding:10px 12px;border-radius:10px}
+.settlement-section-label,.settlement-section-title{margin-bottom:7px;font-size:16px}
+.settlement-people{flex-wrap:nowrap;gap:5px}
+.settlement-person{padding:6px 10px;font-size:15px;white-space:nowrap}
+.settlement-pending-list{gap:5px}
+.settlement-item{min-height:43px;padding:7px 9px;border-radius:8px;gap:8px}
+.settlement-item input{width:16px;height:16px}
+.settlement-item-main{gap:1px}
+.settlement-item-main strong{font-size:14px}
+.settlement-item-main small{font-size:10px}
+.settlement-item b{font-size:14px}
+.settlement-empty{font-size:14px}
+.settlement-field-grid{gap:8px}
+.settlement-field{gap:4px}
+.settlement-field>span{font-size:12px}
+.settlement-field select,.settlement-field input{min-height:38px;padding:6px 10px}
+.settlement-amount-field{margin-top:7px}
+.settlement-summary{margin-top:7px;padding:7px 10px;gap:3px}
+.settlement-summary>div{font-size:14px}
+.settlement-submit{margin-top:7px;min-height:38px;padding:6px 18px}
+.settlement-message{margin-top:5px;font-size:12px}
+@media (max-width:640px){
+  .settlement-form{gap:7px}
+  .settlement-section{padding:9px 10px}
+  .settlement-intro{font-size:17px}
+  .settlement-person{padding:5px 8px;font-size:14px}
+  .settlement-field-grid{grid-template-columns:1fr 1fr}
+}
