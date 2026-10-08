@@ -12,6 +12,13 @@ export function Settlement() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [accountId, setAccountId] = useState('');
   const [receivedAmount, setReceivedAmount] = useState('');
+  const [settlementDate, setSettlementDate] = useState(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  });
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -84,12 +91,15 @@ export function Settlement() {
     }
 
     try {
+      const [year, month, day] = settlementDate.split('-').map(Number);
+      const dateTime = new Date(year, month - 1, day).getTime();
+
       await settleAdvances({
         personId: selectedPersonId,
         transactionIds: selectedIds,
         accountId,
         receivedAmount: received,
-        dateTime: Date.now(),
+        dateTime,
       });
 
       setReceivedAmount('');
@@ -208,6 +218,15 @@ export function Settlement() {
               </option>
             ))}
           </select>
+        </label>
+
+        <label style={{ marginTop: 16 }}>
+          实际收回日期
+          <input
+            type="date"
+            value={settlementDate}
+            onChange={e => setSettlementDate(e.target.value)}
+          />
         </label>
 
         <label style={{ marginTop: 16 }}>
