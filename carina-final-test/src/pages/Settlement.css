@@ -1,0 +1,32 @@
+/* Settlement page owns its controls here so global styles cannot compete. */
+.settlement-form{display:flex;flex-direction:column;gap:7px}
+.settlement-intro{margin-bottom:9px;font-size:17px;line-height:1.2}
+.settlement-intro p{margin:4px 0 0}
+.settlement-section{min-width:0;padding:9px 10px;border:1px solid var(--line);background:rgba(255,255,255,.24);border-radius:10px}
+.settlement-section-label,.settlement-section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:7px;font-size:16px;font-weight:600;color:var(--ink)}
+.settlement-section-title small{font-size:12px;font-weight:400;color:var(--ink-soft)}
+.settlement-people{display:flex;flex-wrap:nowrap;gap:5px;min-width:0}
+.settlement-person{padding:5px 8px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.5);color:var(--ink);font:inherit;font-size:14px;white-space:nowrap;cursor:pointer}
+.settlement-person.selected{border-color:var(--gold);background:var(--ink);color:#fff}
+.settlement-pending-list{display:flex;flex-direction:column;gap:5px}
+.settlement-item{display:flex;align-items:center;gap:8px;min-width:0;min-height:43px;padding:7px 9px;border:1px solid rgba(0,0,0,.08);border-radius:8px;background:rgba(255,255,255,.48);color:var(--ink);cursor:pointer;transition:.18s ease}
+.settlement-item.selected{border-color:var(--gold);background:var(--ink);color:#fff}
+.settlement-item input{width:16px;min-width:16px;height:16px;flex:0 0 auto}
+.settlement-item-main{display:flex;flex:1;min-width:0;flex-direction:column;gap:1px}
+.settlement-item-main strong{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.settlement-item-main small{font-size:10px;opacity:.68}
+.settlement-item b{font-size:14px;white-space:nowrap}
+.settlement-empty{font-size:14px;padding:4px 0;color:var(--ink-soft)}
+.settlement-field-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:start;min-width:0}
+.settlement-field-grid>.settlement-field{min-width:0}
+.settlement-field{display:flex;min-width:0;flex-direction:column;gap:4px}
+.settlement-field>span{font-size:12px;color:var(--ink-soft)}
+.settlement-field-grid .settlement-field select,
+.settlement-field-grid .settlement-field input[type="date"]{display:block!important;width:100%!important;min-width:0!important;height:42px!important;min-height:42px!important;max-width:100%!important;box-sizing:border-box!important;margin:0!important;padding:6px 12px!important}
+.settlement-amount-field{margin-top:7px}
+.settlement-amount-field input{display:block;width:100%;min-width:0;box-sizing:border-box}
+.settlement-summary{margin-top:7px;padding:7px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.settlement-summary>div{display:flex;justify-content:space-between;gap:16px;font-size:14px}
+.settlement-summary b{font-variant-numeric:tabular-nums}
+.settlement-submit{margin-top:7px;min-height:38px;padding:6px 18px}
+.settlement-message{margin-top:5px;text-align:center;font-size:12px;color:var(--ink-soft)}
