@@ -1,6 +1,6 @@
 /* Settlement page owns its controls here so global styles cannot compete. */
 .settlement-form{display:flex;flex-direction:column;gap:7px}
-.settlement-intro{margin-bottom:9px;font-size:17px;line-height:1.2}
+.settlement-intro{font-family:"Cormorant Garamond",Georgia,serif;font-size:20px;font-style:italic;color:var(--ink-soft);margin:-8px 0 9px;line-height:1.2}
 .settlement-intro p{margin:4px 0 0}
 .settlement-section{min-width:0;padding:9px 10px;border:1px solid var(--line);background:rgba(255,255,255,.24);border-radius:10px}
 .settlement-section-label,.settlement-section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:7px;font-size:16px;font-weight:600;color:var(--ink)}
