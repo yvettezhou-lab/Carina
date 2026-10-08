@@ -91,7 +91,7 @@ export function Settlement() {
         </div>
       </header>
 
-      <div className="settings-intro settlement-intro">
+      <div className="settlement-intro">
         <strong>代付结算</strong>
         <p>选择一笔或多笔代付，输入实际收回金额和收款账户。</p>
       </div>
