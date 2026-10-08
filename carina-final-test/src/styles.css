@@ -50,3 +50,32 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 
 
 .quick-entry-error{padding:10px 12px;margin-top:-4px;margin-bottom:10px;border:1px solid rgba(160,75,55,.28);background:rgba(255,245,238,.75);color:#8a4938;border-radius:4px;font-size:12px;line-height:1.4;}
+
+/* Settlement: give the page breathing room and clear visual grouping. */
+.settlement-form{display:flex;flex-direction:column;gap:18px}
+.settlement-intro{margin-bottom:18px}
+.settlement-section{padding:16px;border:1px solid var(--line);background:rgba(255,255,255,.24);border-radius:12px}
+.settlement-section-label,.settlement-section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px;font-weight:600;color:var(--ink)}
+.settlement-section-title small{font-size:12px;font-weight:400;color:var(--ink-soft)}
+.settlement-people{display:flex;flex-wrap:wrap;gap:8px}
+.settlement-person{padding:8px 15px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.5);color:var(--ink);font:inherit;cursor:pointer}
+.settlement-person.selected{border-color:var(--gold);background:var(--ink);color:#fff}
+.settlement-pending-list{display:flex;flex-direction:column;gap:8px}
+.settlement-item{display:flex;align-items:center;gap:12px;min-height:58px;padding:10px 12px;border:1px solid rgba(0,0,0,.08);border-radius:10px;background:rgba(255,255,255,.48);color:var(--ink);cursor:pointer;transition:.18s ease}
+.settlement-item.selected{border-color:var(--gold);background:var(--ink);color:#fff}
+.settlement-item input{width:19px;height:19px;flex:0 0 auto}
+.settlement-item-main{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.settlement-item-main strong{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.settlement-item-main small{font-size:12px;opacity:.68}
+.settlement-item b{font-size:16px;white-space:nowrap}
+.settlement-empty{padding:4px 0;color:var(--ink-soft)}
+.settlement-field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.settlement-field{display:flex;flex-direction:column;gap:7px}
+.settlement-field>span{font-size:13px;color:var(--ink-soft)}
+.settlement-amount-field{margin-top:12px}
+.settlement-summary{margin-top:14px;padding:12px 14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:7px}
+.settlement-summary>div{display:flex;justify-content:space-between;gap:16px}
+.settlement-summary b{font-variant-numeric:tabular-nums}
+.settlement-submit{margin-top:14px}
+.settlement-message{margin-top:10px;text-align:center;font-size:14px;color:var(--ink-soft)}
+@media (max-width: 640px){.settlement-section{padding:14px}.settlement-field-grid{grid-template-columns:1fr}}
