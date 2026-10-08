@@ -112,3 +112,8 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
   .settlement-person{padding:5px 8px;font-size:14px}
   .settlement-field-grid{grid-template-columns:1fr 1fr}
 }
+
+/* Settlement account/date controls: identical geometry. */
+.settlement-field-grid{align-items:start}
+.settlement-field-grid .settlement-field select,
+.settlement-field-grid .settlement-field input[type="date"]{width:100%;box-sizing:border-box;height:42px;min-height:42px;margin:0;padding:6px 12px}
