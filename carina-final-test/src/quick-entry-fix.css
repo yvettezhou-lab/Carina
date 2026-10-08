@@ -177,3 +177,9 @@
     border-radius:13px!important;
   }
 }
+/* Quick Entry / EditTransaction shared controls: single owner. */
+.edit-record-header{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:54px;padding:calc(8px + env(safe-area-inset-top)) 16px 8px;margin:0 -16px 24px}
+.edit-record-header h1{margin:0;text-align:center;font-family:"Cormorant Garamond",Georgia,serif;font-size:25px;font-weight:500}
+.edit-record-header .edit-back{justify-self:start;padding:8px 0;font-size:16px}
+.edit-header-spacer{width:44px;justify-self:end}
+.quick-entry-error{padding:10px 12px;margin-top:-4px;margin-bottom:10px;border:1px solid rgba(160,75,55,.28);background:rgba(255,245,238,.75);color:#8a4938;border-radius:4px;font-size:12px;line-height:1.4}
