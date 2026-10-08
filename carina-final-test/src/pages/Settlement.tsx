@@ -84,13 +84,6 @@ export function Settlement() {
 
   return (
     <section>
-      <header className="hero-head inner-head">
-        <div>
-          <div className="script-title">Settlement</div>
-          <div className="brand-subtitle">ADVANCE RECOVERY</div>
-        </div>
-      </header>
-
       <div className="settlement-intro">
         <strong>代付结算</strong>
         <p>选择一笔或多笔代付，输入实际收回金额和收款账户。</p>
