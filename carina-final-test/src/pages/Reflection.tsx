@@ -17,7 +17,7 @@ function collapseForDrillDown(transactions: Transaction[]): Transaction[] {
     if (transaction.groupId) {
       key = `group:${transaction.groupId}`;
     } else if (transaction.personId) {
-      key = `legacy:${transaction.dateTime}|${transaction.accountId}|${transaction.categoryId}|${transaction.flow}|${transaction.kind ?? ''}|${transaction.advanceStatus ?? ''}|${transaction.description.trim()}`;
+      key = `legacy:${transaction.dateTime}|${transaction.accountId}|${transaction.categoryId}|${transaction.flow}|${transaction.kind ?? ''}|${transaction.advanceStatus ?? ''}|${transaction.description.trim()}|${transaction.personId}`;
     }
 
     const rows = grouped.get(key);
