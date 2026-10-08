@@ -1,3 +1,4 @@
+import './Settlement.css';
 import { useEffect, useState } from 'react';
 import { db } from '@/database/db';
 import type { Account, Person, Transaction } from '@/models';
