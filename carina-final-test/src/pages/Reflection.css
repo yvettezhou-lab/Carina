@@ -1,5 +1,6 @@
 /* Reflection chart: restore the missing chart-specific layout and component styles. */
 .reflection-analysis{overflow:hidden}
+.reflection-period button.active,.reflection-mode button.active{background:var(--ink);border-color:var(--ink);color:#fff}
 .reflection-analysis .reflection-donut-layout{
   display:grid;
   grid-template-columns:minmax(130px,180px) minmax(0,1fr);
