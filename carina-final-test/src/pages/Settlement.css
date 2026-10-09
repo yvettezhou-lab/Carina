@@ -33,19 +33,6 @@
 .settlement-summary b{font-variant-numeric:tabular-nums}
 
 .settlement-message{margin-top:5px;text-align:center;font-size:12px;color:var(--ink-soft)}
-.settlement-field-grid .settlement-field input[type="date"]{
-  -webkit-appearance:none!important;
-  appearance:none!important;
-  display:block!important;
-  inline-size:100%!important;
-  min-inline-size:0!important;
-  max-inline-size:100%!important;
-  width:100%!important;
-  box-sizing:border-box!important;
-  overflow:hidden!important;
-  font-size:16px!important;
-  padding-inline:8px!important;
-}
 @media(max-width:600px){
   .settlement-field-grid{
     grid-template-columns:minmax(0,1fr)!important;
