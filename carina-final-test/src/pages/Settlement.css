@@ -28,5 +28,5 @@
 .settlement-summary{margin-top:7px;padding:7px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
 .settlement-summary>div{display:flex;justify-content:space-between;gap:16px;font-size:14px}
 .settlement-summary b{font-variant-numeric:tabular-nums}
-.settlement-submit{margin-top:7px;min-height:38px;padding:6px 18px}
+
 .settlement-message{margin-top:5px;text-align:center;font-size:12px;color:var(--ink-soft)}
