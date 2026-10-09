@@ -181,7 +181,15 @@ export const AmountKeypad: React.FC<AmountKeypadProps> = ({ value, onChange }) =
                   key={key}
                   type="button"
                   className={extraClass}
-                  onClick={() => {
+                  onPointerDown={(event) => {
+                    if (key === 'done') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      setOpen(false);
+                    }
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
                     if (key === 'done') {
                       setOpen(false);
                       return;
