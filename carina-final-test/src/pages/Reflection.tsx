@@ -1,3 +1,4 @@
+import './Reflection.css';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '@/database/db';
