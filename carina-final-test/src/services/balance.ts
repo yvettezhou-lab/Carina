@@ -1,1 +1,19 @@
-import {db} from '@/database/db';import type {Account} from '@/models';export async function getAccountBalance(a:Account){const tx=await db.transactions.where('accountId').equals(a.id).toArray();const out=await db.transfers.where('fromAccountId').equals(a.id).toArray();const inn=await db.transfers.where('toAccountId').equals(a.id).toArray();return a.openingBalance+tx.reduce((s,t)=>s+(t.flow==='income'?t.amount:-t.amount),0)-out.reduce((s,x)=>s+x.amount,0)+inn.reduce((s,x)=>s+x.amount,0)}
+import { db } from '@/database/db';
+import type { Account } from '@/models';
+
+export async function getAccountBalance(account: Account): Promise<number> {
+  const [transactions, outgoingTransfers, incomingTransfers] = await Promise.all([
+    db.transactions.where('accountId').equals(account.id).toArray(),
+    db.transfers.where('fromAccountId').equals(account.id).toArray(),
+    db.transfers.where('toAccountId').equals(account.id).toArray(),
+  ]);
+
+  const transactionBalance = transactions.reduce(
+    (sum, transaction) => sum + (transaction.flow === 'income' ? transaction.amount : -transaction.amount),
+    0,
+  );
+  const outgoingTotal = outgoingTransfers.reduce((sum, transfer) => sum + transfer.amount, 0);
+  const incomingTotal = incomingTransfers.reduce((sum, transfer) => sum + transfer.amount, 0);
+
+  return account.openingBalance + transactionBalance - outgoingTotal + incomingTotal;
+}
