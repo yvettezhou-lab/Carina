@@ -213,4 +213,6 @@
   .reflection-analysis .reflection-trend-chart{gap:4px}
   .reflection-analysis .reflection-trend-bars{gap:3px}
   .reflection-analysis .reflection-trend-bars span{width:6px}
+  .reflection-analysis .reflection-donut{margin:0 auto}
+  .reflection-analysis .trend-legend{justify-content:center}
 }
