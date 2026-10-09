@@ -57,3 +57,22 @@
     max-width:100%!important;
   }
 }
+
+/* Match the date control to Carina's paper-style fields; avoid iOS blue native rendering. */
+.settlement-field-grid .settlement-field input[type="date"]{
+  color:var(--ink)!important;
+  color-scheme:light!important;
+  background:rgba(255,252,244,.7)!important;
+  border:1px solid var(--line)!important;
+  border-radius:2px!important;
+  text-align:left!important;
+  -webkit-text-fill-color:var(--ink)!important;
+}
+.settlement-field-grid .settlement-field input[type="date"]::-webkit-date-and-time-value{
+  text-align:left!important;
+  min-height:1.2em!important;
+}
+.settlement-field-grid .settlement-field input[type="date"]::-webkit-calendar-picker-indicator{
+  opacity:.75!important;
+  margin:0!important;
+}
