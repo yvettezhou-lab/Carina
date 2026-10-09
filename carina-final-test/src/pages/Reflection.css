@@ -206,7 +206,6 @@
 @media(max-width:520px){
   .reflection-analysis .reflection-donut-layout{grid-template-columns:minmax(0,1fr);gap:18px}
   .reflection-analysis .reflection-donut{width:148px;height:148px}
-  .reflection-analysis .reflection-breakdown-list{width:100%}
   .reflection-analysis .reflection-breakdown-row{padding:10px 2px}
   .reflection-analysis .reflection-breakdown-row strong{font-size:12px}
   .reflection-analysis .reflection-bar-row{grid-template-columns:minmax(58px,68px) minmax(0,1fr) auto;gap:6px}
