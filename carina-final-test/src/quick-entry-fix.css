@@ -200,3 +200,11 @@
   background:rgba(255,252,244,.7)!important;
   box-shadow:inset 0 0 0 1px rgba(80,64,42,.025)!important;
 }
+
+/* Person selection spans the full form width instead of being trapped in one grid column. */
+.quick-form .smart-grid > label:has(.person-picker){
+  grid-column:1 / -1!important;
+}
+.quick-form .smart-grid .person-picker{
+  width:100%!important;
+}
