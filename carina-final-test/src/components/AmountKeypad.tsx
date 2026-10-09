@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-} from '@/utils/amount';
+import { evaluateAmountExpression } from '@/utils/amount';
 
-const evaluateCalculatorExpression = evaluateAmountExpression;
+const evaluateCalculatorExpression = (input: string): number | null => {
+  const result = evaluateAmountExpression(input);
+  return Number.isFinite(result) ? result : null;
+};
 const formatCalculatorResult = (value: number): string => Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2)));
 const displayCalculatorExpression = (value: string): string => value.replace(/\*/g, '×').replace(/\//g, '÷');
 
@@ -129,7 +131,6 @@ export const AmountKeypad: React.FC<AmountKeypadProps> = ({ value, onChange }) =
         onClick={() => setOpen(true)}
       >
         <span className="quick-entry-amount-result">{displayValue}</span>
-
       </button>
 
       {open && (
