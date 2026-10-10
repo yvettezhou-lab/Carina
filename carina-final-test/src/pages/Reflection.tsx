@@ -52,10 +52,6 @@ export function Reflection() {
   const [showAllDrillDown, setShowAllDrillDown] = useState(false);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  }, []);
-
-  useEffect(() => {
     let alive = true;
     Promise.all([db.transactions.toArray(), db.categories.toArray(), db.accounts.toArray(), db.people.toArray()]).then(([tx, cats, accts, ppl]) => {
       if (!alive) return;
@@ -171,7 +167,7 @@ export function Reflection() {
 
   return (
     <section>
-      <div className="reflection-sticky-controls">
+      <div className="reflection-header-controls">
         <header className="hero-head inner-head">
           <div><div className="script-title">Reflection</div><div className="brand-subtitle">{period === 'year' ? 'A YEAR IN REVIEW' : 'A MONTH IN REVIEW'}</div></div>
           <div className="month-switch">
