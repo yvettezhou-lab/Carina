@@ -3,8 +3,8 @@
 :root{--parchment:#f3ead8;--parchment-light:#fbf7ee;--ink:#172235;--ink-soft:#394457;--gold:#a8874a;--gold-soft:#c9ad73;--line:rgba(74,57,30,.16);--muted:#7c776d;--paper-shadow:0 18px 45px rgba(70,50,20,.10)}
 *{box-sizing:border-box}
 html,body,#root{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;background:var(--parchment);color:var(--ink)}
-html{width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;}
-body{width:100%;min-width:0;overflow-x:hidden;overscroll-behavior-x:none;background:radial-gradient(ellipse at 20% 10%,rgba(255,255,255,.7),transparent 38%),radial-gradient(ellipse at 90% 85%,rgba(142,104,47,.08),transparent 35%),repeating-linear-gradient(0deg,rgba(90,60,20,.018) 0,rgba(90,60,20,.018) 1px,transparent 1px,transparent 5px),var(--parchment);}
+html{width:100%;overflow-x:clip;-webkit-text-size-adjust:100%;}
+body{width:100%;min-width:0;overflow-x:clip;overscroll-behavior-x:none;background:radial-gradient(ellipse at 20% 10%,rgba(255,255,255,.7),transparent 38%),radial-gradient(ellipse at 90% 85%,rgba(142,104,47,.08),transparent 35%),repeating-linear-gradient(0deg,rgba(90,60,20,.018) 0,rgba(90,60,20,.018) 1px,transparent 1px,transparent 5px),var(--parchment);}
 button,input,select,textarea{font:inherit;font-size:16px;max-width:100%}button{cursor:pointer;color:inherit}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold-soft);outline-offset:2px}
 img,svg,video,canvas{max-width:100%;height:auto}
 .app-shell{min-height:100vh;padding-bottom:calc(94px + env(safe-area-inset-bottom));width:100%;min-width:0}
