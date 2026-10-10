@@ -52,6 +52,10 @@ export function Reflection() {
   const [showAllDrillDown, setShowAllDrillDown] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, []);
+
+  useEffect(() => {
     let alive = true;
     Promise.all([db.transactions.toArray(), db.categories.toArray(), db.accounts.toArray(), db.people.toArray()]).then(([tx, cats, accts, ppl]) => {
       if (!alive) return;
