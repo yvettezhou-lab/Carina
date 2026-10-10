@@ -263,8 +263,9 @@
 .reflection-analysis .trend-legend .income-dot{background:#6e836d}
 .reflection-analysis .trend-legend .expense-dot{background:#8f6f37}
 @media(max-width:520px){
-  .reflection-analysis .reflection-donut-layout{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:12px}
-  .reflection-analysis .reflection-donut{width:clamp(148px,46vw,180px);height:clamp(148px,46vw,180px)}
+  /* Match the established ¥9,436 Reflection composition: larger chart, tighter and more deliberate legend column. */
+  .reflection-analysis .reflection-donut-layout{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px}
+  .reflection-analysis .reflection-donut{width:clamp(160px,46vw,180px);height:clamp(160px,46vw,180px)}
   .reflection-analysis .reflection-breakdown-row{padding:10px 2px}
   .reflection-analysis .reflection-breakdown-row strong{font-size:12px}
   .reflection-analysis .reflection-bar-row{grid-template-columns:minmax(58px,68px) minmax(0,1fr) auto;gap:6px}
