@@ -1,5 +1,63 @@
 /* Reflection chart: restore the missing chart-specific layout and component styles. */
 .reflection-analysis{overflow:hidden}
+
+.reflection-drilldown{
+  margin-top:24px;
+  padding-top:20px;
+  border-top:1px solid var(--line);
+  min-width:0;
+}
+.reflection-drilldown-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+  min-width:0;
+}
+.reflection-drilldown-head>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.reflection-drilldown-head>div>strong{font-size:20px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+.reflection-drilldown-head>span{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;font-size:14px;font-variant-numeric:tabular-nums;text-align:right}
+.reflection-transaction{
+  appearance:none;
+  -webkit-appearance:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+  min-width:0;
+  padding:14px 0;
+  margin:0;
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+  background:transparent;
+  color:var(--ink);
+  box-shadow:none;
+  text-align:left;
+  font:inherit;
+  cursor:pointer;
+}
+.reflection-transaction>span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.reflection-transaction>span strong{font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.reflection-transaction>span small{font-size:12px;color:var(--muted)}
+.reflection-transaction>b{flex:none;white-space:nowrap;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.reflection-drilldown-toggle{
+  display:block;
+  width:100%;
+  margin-top:12px;
+  padding:10px 12px;
+  border:1px solid var(--line);
+  border-radius:2px;
+  background:transparent;
+  color:var(--ink-soft);
+  font:inherit;
+  font-size:12px;
+  text-align:center;
+  cursor:pointer;
+}
+
 .reflection-period button.active,.reflection-mode button.active{background:var(--ink);border-color:var(--ink);color:#fff}
 .reflection-analysis .reflection-donut-layout{
   display:grid;
