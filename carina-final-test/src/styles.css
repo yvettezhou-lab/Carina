@@ -11,7 +11,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
 .page{width:min(100%,760px);max-width:760px;margin:0 auto;padding:24px 20px 36px;min-width:0;overflow-wrap:anywhere}.page>*{min-width:0}
 .hero-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:6px 0 28px;min-width:0;padding-top:5px}.inner-head{align-items:center}
 /* Reflection month/year controls stay reachable while the analysis is scrolled. */
-.reflection-sticky-controls{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:var(--parchment);padding-top:12px;margin:0 0 18px;box-shadow:0 8px 12px -12px rgba(74,57,30,.3)}
+.reflection-sticky-controls{position:static;top:auto;z-index:auto;background:transparent;padding-top:12px;margin:0 0 18px;box-shadow:none}
 .hero-head.inner-head{align-items:center;padding:0 0 10px;margin:0 0 8px;background:transparent;box-shadow:none}
 .brand-script,.script-title{font-family:"Snell Roundhand","Segoe Script","Bradley Hand","Cormorant Garamond",cursive;font-style:italic;font-weight:500;color:var(--ink);line-height:.9}.brand-script{font-size:49px;letter-spacing:-.03em}.script-title{font-size:45px}
 .brand-subtitle,.hero-card-kicker,.panel-kicker,.atelier-title span{font-size:10px;letter-spacing:.18em;font-weight:700;color:var(--muted)}
