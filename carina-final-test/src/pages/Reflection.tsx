@@ -167,18 +167,20 @@ export function Reflection() {
 
   return (
     <section>
-      <header className="hero-head inner-head">
-        <div><div className="script-title">Reflection</div><div className="brand-subtitle">{period === 'year' ? 'A YEAR IN REVIEW' : 'A MONTH IN REVIEW'}</div></div>
-        <div className="month-switch">
-          <button onClick={() => shift(-1)} aria-label={period === 'year' ? 'Previous year' : 'Previous month'}>‹</button>
-          <span>{title}</span>
-          <button onClick={() => shift(1)} aria-label={period === 'year' ? 'Next year' : 'Next month'}>›</button>
-        </div>
-      </header>
+      <div className="reflection-sticky-controls">
+        <header className="hero-head inner-head">
+          <div><div className="script-title">Reflection</div><div className="brand-subtitle">{period === 'year' ? 'A YEAR IN REVIEW' : 'A MONTH IN REVIEW'}</div></div>
+          <div className="month-switch">
+            <button onClick={() => shift(-1)} aria-label={period === 'year' ? 'Previous year' : 'Previous month'}>‹</button>
+            <span>{title}</span>
+            <button onClick={() => shift(1)} aria-label={period === 'year' ? 'Next year' : 'Next month'}>›</button>
+          </div>
+        </header>
 
-      <div className="reflection-period" role="tablist" aria-label="Reflection period" style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',marginBottom:12}}>
-        <button role="tab" aria-selected={period === 'month'} className={period === 'month' ? 'active' : ''} onClick={() => selectPeriod('month')}>Month</button>
-        <button role="tab" aria-selected={period === 'year'} className={period === 'year' ? 'active' : ''} onClick={() => selectPeriod('year')}>Year</button>
+        <div className="reflection-period" role="tablist" aria-label="Reflection period" style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',marginBottom:12}}>
+          <button role="tab" aria-selected={period === 'month'} className={period === 'month' ? 'active' : ''} onClick={() => selectPeriod('month')}>Month</button>
+          <button role="tab" aria-selected={period === 'year'} className={period === 'year' ? 'active' : ''} onClick={() => selectPeriod('year')}>Year</button>
+        </div>
       </div>
 
       <div className="reflection-summary">
