@@ -177,7 +177,7 @@ export function Reflection() {
           </div>
         </header>
 
-        <div className="reflection-period" role="tablist" aria-label="Reflection period" style={{display:'grid',gridTemplateColumns:'repeat(2,minmax(0,1fr))',marginBottom:12}}>
+        <div className="reflection-period" role="tablist" aria-label="Reflection period">
           <button role="tab" aria-selected={period === 'month'} className={period === 'month' ? 'active' : ''} onClick={() => selectPeriod('month')}>Month</button>
           <button role="tab" aria-selected={period === 'year'} className={period === 'year' ? 'active' : ''} onClick={() => selectPeriod('year')}>Year</button>
         </div>
@@ -189,7 +189,7 @@ export function Reflection() {
         <div><span>NET FLOW</span><strong className={activeData.netFlow >= 0 ? 'positive' : 'negative'}>{activeData.netFlow >= 0 ? '+' : '−'} ¥{Math.abs(activeData.netFlow).toFixed(2)}</strong></div>
       </div>
 
-      <div className="reflection-mode" style={{display:'grid',gridTemplateColumns:'repeat(4,minmax(0,1fr))',whiteSpace:'nowrap'}} role="tablist" aria-label="Reflection analysis">
+      <div className="reflection-mode" role="tablist" aria-label="Reflection analysis">
         {([['category', 'Category'], ['account', 'Account'], ['person', 'Person'], ['trend', 'Trend']] as const).map(([value, label]) => (
           <button key={value} role="tab" aria-selected={mode === value} className={mode === value ? 'active' : ''} onClick={() => selectMode(value)}>{label}</button>
         ))}
