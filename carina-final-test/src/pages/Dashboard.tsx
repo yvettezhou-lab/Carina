@@ -51,17 +51,29 @@ export function Dashboard() {
 
   function accountChanges(accountId: string): AccountChange[] {
     const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-    const rows: AccountChange[] = transactions
+    // One Quick Entry may create several person-split transactions sharing groupId.
+    // Collapse only those explicit groups here; never merge unrelated entries that merely look alike.
+    const transactionGroups = new Map<string, Transaction[]>();
+    transactions
       .filter(t => t.accountId === accountId && t.dateTime >= cutoff)
-      .map(t => ({
+      .forEach(t => {
+        const key = t.groupId ? `group:${t.groupId}` : `single:${t.id}`;
+        const group = transactionGroups.get(key);
+        if (group) group.push(t);
+        else transactionGroups.set(key, [t]);
+      });
+    const rows: AccountChange[] = Array.from(transactionGroups.values()).map(group => {
+      const t = group[0]!;
+      return {
         id: t.id,
         kind: 'transaction' as const,
         dateTime: t.dateTime,
         description: t.description.trim() || (t.flow === 'income' ? 'Income' : 'Expense'),
         detail: categoryNames.get(t.categoryId) ?? 'Uncategorized',
-        amount: t.amount,
+        amount: group.reduce((sum, item) => sum + item.amount, 0),
         direction: t.flow,
-      }));
+      };
+    });
     for (const t of transfers) {
       if (t.dateTime < cutoff) continue;
       if (t.fromAccountId === accountId) {
