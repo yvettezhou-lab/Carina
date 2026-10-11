@@ -53,7 +53,6 @@ export function Dashboard() {
     const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
     const rows: AccountChange[] = transactions
       .filter(t => t.accountId === accountId && t.dateTime >= cutoff)
-      .filter(t => t.accountId === accountId)
       .map(t => ({
         id: t.id,
         kind: 'transaction' as const,
