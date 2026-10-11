@@ -1,3 +1,9 @@
+
+/* Reflection page layout: the single owner of its header and period tabs. */
+.reflection-header-controls{margin:0 0 18px;padding-top:12px;background:transparent}
+.reflection-header-controls>.hero-head{align-items:center;padding:0 0 10px;margin:0 0 8px;background:transparent;box-shadow:none}
+.reflection-period{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px;min-width:0;overflow:visible}
+.reflection-mode{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));white-space:nowrap;min-width:0;overflow:visible}
 /* Reflection chart: restore the missing chart-specific layout and component styles. */
 .reflection-analysis{overflow:hidden}
 
