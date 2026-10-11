@@ -54,7 +54,7 @@ export function Dashboard() {
       .filter(t => t.accountId === accountId)
       .map(t => ({
         id: t.id,
-        kind: 'transaction',
+        kind: 'transaction' as const,
         dateTime: t.dateTime,
         description: t.description.trim() || (t.flow === 'income' ? 'Income' : 'Expense'),
         detail: categoryNames.get(t.categoryId) ?? 'Uncategorized',
@@ -64,7 +64,7 @@ export function Dashboard() {
     for (const t of transfers) {
       if (t.fromAccountId === accountId) {
         rows.push({
-          id: t.id, kind: 'transfer', dateTime: t.dateTime,
+          id: t.id, kind: 'transfer' as const, dateTime: t.dateTime,
           description: 'Transfer out',
           detail: `To ${accounts.find(a => a.id === t.toAccountId)?.name ?? 'Unknown account'}`,
           amount: t.amount, direction: 'transfer-out',
