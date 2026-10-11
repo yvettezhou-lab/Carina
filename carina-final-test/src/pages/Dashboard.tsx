@@ -50,7 +50,9 @@ export function Dashboard() {
   const categoryNames = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
 
   function accountChanges(accountId: string): AccountChange[] {
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
     const rows: AccountChange[] = transactions
+      .filter(t => t.accountId === accountId && t.dateTime >= cutoff)
       .filter(t => t.accountId === accountId)
       .map(t => ({
         id: t.id,
@@ -62,6 +64,7 @@ export function Dashboard() {
         direction: t.flow,
       }));
     for (const t of transfers) {
+      if (t.dateTime < cutoff) continue;
       if (t.fromAccountId === accountId) {
         rows.push({
           id: t.id, kind: 'transfer' as const, dateTime: t.dateTime,
@@ -126,12 +129,12 @@ export function Dashboard() {
               {expanded && (
                 <div className="dashboard-account-changes">
                   <div className="dashboard-changes-heading">
-                    <span>RECENT CHANGES</span>
+                    <span>LAST 30 DAYS</span>
                     <span>{changes.length} records</span>
                   </div>
                   {changes.length === 0 ? (
-                    <p className="dashboard-changes-empty">No changes recorded for this account yet.</p>
-                  ) : changes.slice(0, 5).map(change => (
+                    <p className="dashboard-changes-empty">No changes in the past 30 days.</p>
+                  ) : changes.map(change => (
                     <button type="button" className="dashboard-change-row" key={`${change.kind}-${change.id}`} onClick={() => navigate(change.kind === 'transfer' ? `/transfer/${change.id}` : `/transactions/${change.id}/edit`)}>
                       <span className="dashboard-change-icon">{change.kind === 'transfer' ? <ArrowLeftRight size={14}/> : <span className={change.direction === 'income' ? 'income' : 'expense'}>{change.direction === 'income' ? '+' : '−'}</span>}</span>
                       <span className="dashboard-change-copy">
@@ -143,7 +146,6 @@ export function Dashboard() {
                       </strong>
                     </button>
                   ))}
-                  {changes.length > 5 && <button type="button" className="dashboard-view-ledger" onClick={() => navigate('/transactions')}>View all in Ledger <ArrowRight size={13}/></button>}
                 </div>
               )}
             </div>
