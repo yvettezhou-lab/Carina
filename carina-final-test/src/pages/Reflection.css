@@ -1,3 +1,22 @@
+/* Reflection-only controls: canonical source for Reflection layout. */
+.reflection-header-controls .month-switch{display:flex;align-items:center;gap:4px;font-family:"Cormorant Garamond",Georgia,serif;font-size:15px;min-width:0}
+.reflection-header-controls .month-switch button{width:25px;height:25px;border:0;background:transparent;font-size:22px;color:var(--muted);flex:none}
+.reflection-header-controls .month-switch span{min-width:0;text-align:center;white-space:nowrap}
+.reflection-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:22px}
+.reflection-summary>div{background:rgba(255,252,244,.72);padding:15px 12px;min-width:0}
+.reflection-summary span{display:block;color:var(--muted);font-size:9px;letter-spacing:.13em}
+.reflection-summary strong{display:block;margin-top:8px;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media(max-width:520px){
+  .reflection-summary{margin-bottom:18px}
+  .reflection-summary>div{padding:12px 8px}
+  .reflection-summary span{font-size:8px}
+  .reflection-summary strong{font-size:12px}
+}
+@media(max-width:430px){
+  .reflection-header-controls .month-switch span{font-size:14px}
+  .reflection-summary strong{font-size:11px}
+}
+
 
 /* Reflection page layout: the single owner of its header and period tabs. */
 .reflection-header-controls{margin:0 0 18px;padding-top:12px;background:transparent}
