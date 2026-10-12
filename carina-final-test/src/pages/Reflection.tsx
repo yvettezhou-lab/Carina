@@ -74,7 +74,7 @@ export function Reflection() {
     const counts = new Map<string, number>();
     transactions.forEach((transaction) => {
       const date = new Date(transaction.dateTime);
-      if (accounts.find((account) => account.id === transaction.accountId)?.includeInNetWorth !== false && transaction.flow === 'expense' && date >= start && date < end) {
+      if (accounts.find((account) => account.id === transaction.accountId)?.includeInNetWorth !== false && transaction.flow === 'expense' && transaction.kind !== 'advance' && date >= start && date < end) {
         const id = transaction.personId || '__none__';
         totals.set(id, (totals.get(id) || 0) + transaction.amount);
         counts.set(id, (counts.get(id) || 0) + 1);
@@ -104,7 +104,7 @@ export function Reflection() {
         const date = new Date(transaction.dateTime);
         const matchesPeriod = date >= start && date < end;
         const matchesPerson = selectedId === '__none__' ? !transaction.personId : transaction.personId === selectedId;
-        return matchesPeriod && transaction.flow === 'expense' && matchesPerson;
+        return matchesPeriod && transaction.flow === 'expense' && transaction.kind !== 'advance' && matchesPerson;
       });
     }
     if (mode === 'category') {
