@@ -22,46 +22,9 @@ export async function settleAdvances(i:{
     throw new Error('收回金额无效');
   }
 
-  const rows=await db.transactions.bulkGet(i.transactionIds);
-  const selected=rows.filter((x):x is Transaction=>!!x);
-
-  if(selected.length!==i.transactionIds.length){
-    throw new Error('部分代付记录不存在');
-  }
-
-  if(selected.some(x=>
-    x.kind!=='advance' ||
-    x.advanceStatus==='settled' ||
-    x.personId!==i.personId
-  )){
-    throw new Error('存在无效或已结算的代付记录');
-  }
-
-  const expectedAmount=selected.reduce((sum,x)=>sum+x.amount,0);
-  const difference=i.receivedAmount-expectedAmount;
+  const money=(value:number)=>Math.round((value+Number.EPSILON)*100)/100;
+  const receivedAmount=money(i.receivedAmount);
   const now=Date.now();
-
-  let autoDifferenceCategoryId:string|undefined;
-  if(difference!==0){
-    const flow=difference>0?'income':'expense';
-    const existing=await db.categories
-      .filter(c=>c.flow===flow && c.name==='代付差额' && !c.isArchived)
-      .first();
-
-    if(existing){
-      autoDifferenceCategoryId=existing.id;
-    }else{
-      autoDifferenceCategoryId=uid();
-      await db.categories.add({
-        id:autoDifferenceCategoryId,
-        name:'代付差额',
-        flow,
-        sortOrder:999,
-        isArchived:false,
-      });
-    }
-  }
-
   const dateTime=i.dateTime??now;
   const settlementId=uid();
 
@@ -69,18 +32,65 @@ export async function settleAdvances(i:{
     'rw',
     db.transactions,
     db.accounts,
+    db.categories,
     db.settlements,
     async()=>{
+      // Re-read and validate inside the write transaction to prevent duplicate settlement.
+      const rows=await db.transactions.bulkGet(i.transactionIds);
+      const selected=rows.filter((x):x is Transaction=>!!x);
+      if(selected.length!==i.transactionIds.length){
+        throw new Error('部分代付记录不存在');
+      }
+      if(selected.some(x=>
+        x.kind!=='advance' ||
+        x.advanceStatus==='settled' ||
+        x.personId!==i.personId
+      )){
+        throw new Error('存在无效或已结算的代付记录');
+      }
+      if(!await db.accounts.get(i.accountId)){
+        throw new Error('收款账户不存在');
+      }
+
+      const expectedAmount=money(selected.reduce((sum,x)=>sum+x.amount,0));
+      const difference=money(receivedAmount-expectedAmount);
+      let differenceCategoryId:string|undefined;
+
+      if(difference!==0){
+        const flow=difference>0?'income':'expense';
+        const requested=i.differenceCategoryId
+          ? await db.categories.get(i.differenceCategoryId)
+          : undefined;
+        const existing=requested && requested.flow===flow && !requested.isArchived
+          ? requested
+          : await db.categories
+            .filter(c=>c.flow===flow && c.name==='代付差额' && !c.isArchived)
+            .first();
+
+        if(existing){
+          differenceCategoryId=existing.id;
+        }else{
+          differenceCategoryId=uid();
+          await db.categories.add({
+            id:differenceCategoryId,
+            name:'代付差额',
+            flow,
+            sortOrder:999,
+            isArchived:false,
+          });
+        }
+      }
+
       /*
-       * 1. 收回本金进入收款账户。
-       *    reimbursement 是本金回流，不属于经营收入。
-       *    即使少收，也只记录实际收到的本金，绝不改写原代付金额。
+       * Principal received is recorded on the actual receiving account B.
+       * It is a return of the advance, not ordinary income.
        */
-      if(i.receivedAmount>0){
+      const principalReceived=money(Math.min(receivedAmount,expectedAmount));
+      if(principalReceived>0){
         const reimbursement:Transaction={
           id:uid(),
           description:'代付结算本金',
-          amount:Math.min(i.receivedAmount,expectedAmount),
+          amount:principalReceived,
           accountId:i.accountId,
           categoryId:'',
           personId:i.personId,
@@ -91,19 +101,10 @@ export async function settleAdvances(i:{
           createdAt:now,
           updatedAt:now,
         };
-
         await db.transactions.add(reimbursement);
       }
 
-      /*
-       * 2. 原代付记录保持原始金额，仅标记为已结算。
-       *
-       *    例如：原代付 300、实际收回 280
-       *    原记录仍为 Expense 300；新增 reimbursement +280。
-       *    账户实际净变化因此为 -20。
-       *
-       *    多笔代付同样不修改任何原始金额，避免破坏历史流水。
-       */
+      // Keep every original advance amount/account unchanged.
       for(const x of selected){
         await db.transactions.update(x.id,{
           advanceStatus:'settled',
@@ -112,22 +113,14 @@ export async function settleAdvances(i:{
         });
       }
 
-      /*
-       * 3. 多收的真正差额计入收入。
-       *    少收不再额外创建 expense，因为损失已经体现在：
-       *    原始代付 Expense - 实际收回本金。
-       */
       if(difference>0){
-        if(!autoDifferenceCategoryId){
-          throw new Error('多收差额需要选择收入分类');
-        }
-
+        // Any overpayment is real additional income on receiving account B.
         const income:Transaction={
           id:uid(),
-          description:'代付结算收益',
+          description:'代付多收差额',
           amount:difference,
           accountId:i.accountId,
-          categoryId:autoDifferenceCategoryId,
+          categoryId:differenceCategoryId!,
           personId:i.personId,
           flow:'income',
           dateTime,
@@ -136,8 +129,48 @@ export async function settleAdvances(i:{
           createdAt:now,
           updatedAt:now,
         };
-
         await db.transactions.add(income);
+      }else if(difference<0){
+        /*
+         * Record the shortfall as an expense adjustment on the account(s)
+         * that originally paid the advances. This is statistical only:
+         * balance.ts excludes settlement_difference so the same loss is
+         * not deducted from account cash twice.
+         *
+         * If the selected advances came from multiple accounts, split the
+         * adjustment proportionally by the original advance amounts.
+         */
+        const shortfall=money(Math.abs(difference));
+        const byAccount=new Map<string,number>();
+        for(const x of selected){
+          byAccount.set(x.accountId,(byAccount.get(x.accountId)??0)+x.amount);
+        }
+        const sourceAccounts=[...byAccount.entries()];
+        let allocated=0;
+        for(let index=0;index<sourceAccounts.length;index++){
+          const [sourceAccountId,sourceAmount]=sourceAccounts[index]!;
+          const amount=index===sourceAccounts.length-1
+            ? money(shortfall-allocated)
+            : money(shortfall*sourceAmount/expectedAmount);
+          if(amount<=0) continue;
+          allocated=money(allocated+amount);
+          const expense:Transaction={
+            id:uid(),
+            description:'代付少收差额（统计调整）',
+            amount,
+            accountId:sourceAccountId,
+            categoryId:differenceCategoryId!,
+            personId:i.personId,
+            flow:'expense',
+            dateTime,
+            kind:'settlement_difference',
+            settlementId,
+            note:'非现金流水：只计入支出统计，不重复扣减账户余额',
+            createdAt:now,
+            updatedAt:now,
+          };
+          await db.transactions.add(expense);
+        }
       }
 
       const settlement:Settlement={
@@ -146,13 +179,12 @@ export async function settleAdvances(i:{
         transactionIds:i.transactionIds,
         accountId:i.accountId,
         expectedAmount,
-        receivedAmount:i.receivedAmount,
+        receivedAmount,
         difference,
-        differenceCategoryId:autoDifferenceCategoryId,
+        differenceCategoryId,
         dateTime,
         createdAt:now,
       };
-
       await db.settlements.add(settlement);
       await db.accounts.update(i.accountId,{lastUsedAt:now});
     }
