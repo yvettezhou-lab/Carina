@@ -168,7 +168,12 @@ export function Transactions() {
     if (item.kind === 'transfer') {
       await db.transfers.delete(item.id);
     } else {
-      await Promise.all(item.transactionIds.map(id => deleteTransaction(id)));
+      try {
+        await Promise.all(item.transactionIds.map(id => deleteTransaction(id)));
+      } catch (error) {
+        alert(error instanceof Error ? error.message : '无法删除这条记录');
+        return;
+      }
     }
     await refresh();
   }
