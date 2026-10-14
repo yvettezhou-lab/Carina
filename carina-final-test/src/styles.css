@@ -194,3 +194,12 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 .quick-sync-entry-option small{display:block;margin-top:8px;font-size:10px;line-height:1.4;color:var(--muted);letter-spacing:0}
 .quick-amount-sync-row .quick-entry-amount-trigger{min-height:54px}
 @media(max-width:430px){.quick-amount-sync-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.quick-sync-entry-option{padding:10px 8px}.quick-sync-entry-option .sync-entry-toggle{font-size:13px;gap:6px}.quick-sync-entry-option small{font-size:9px}}
+
+/* Keep the sync target on the same line as the sync checkbox. */
+.quick-sync-entry-option{padding:12px!important;min-height:0}
+.quick-sync-inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.quick-sync-entry-option .quick-sync-inline .sync-entry-toggle{display:flex;align-items:center;gap:7px;white-space:nowrap;margin:0!important;font-size:14px;letter-spacing:0}
+.quick-sync-entry-option .quick-sync-inline .sync-entry-toggle input{flex:0 0 20px!important}
+.quick-sync-target-inline{display:flex!important;align-items:center;gap:5px;margin:0!important;font-size:13px!important;letter-spacing:0!important;min-width:0;flex:1}
+.quick-sync-target-inline>span{flex:none}
+.quick-sync-entry-option .quick-sync-target-inline select{width:100%;min-width:0;margin:0!important;padding:8px 5px!important;font-size:13px!important}
