@@ -404,7 +404,8 @@ return <section>
                 <em style={{
                   marginLeft:"16px",
                   flexShrink:0,
-                  fontStyle:"normal"
+                  fontStyle:"normal",
+                  color:x.balance<0?'#56745c':undefined
                 }}>
                   {x.balance.toLocaleString('en-US',{
                     minimumFractionDigits:2,
