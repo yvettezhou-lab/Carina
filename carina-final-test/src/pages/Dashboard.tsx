@@ -135,7 +135,7 @@ export function Dashboard() {
                   </button>
                   <span>{a.kind.toUpperCase()} · {a.currency}</span>
                 </div>
-                <strong className="account-balance">¥{a.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                <strong className={`account-balance${a.balance<0?' negative-balance':''}`}>¥{a.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
               </div>
               {expanded && (
                 <div className="dashboard-account-changes">
