@@ -182,108 +182,72 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
   }
 }
 
-/* Quick Entry amount and inline sync controls */
+/* Quick Entry amount + sync controls: one canonical layout */
 .quick-amount-sync-row{
   display:grid;
-  grid-template-columns:minmax(0, 0.8fr) minmax(0, 1.2fr);
+  grid-template-columns:minmax(0, .4fr) minmax(0, .6fr);
   gap:12px;
   align-items:start;
   margin-bottom:16px;
 }
 .quick-amount-field{min-width:0;margin-bottom:0!important}
 .quick-amount-sync-row .quick-entry-amount-trigger{min-height:49px}
-.quick-sync-entry-option{
+.quick-amount-sync-row .quick-sync-select-field{
   display:flex;
   align-items:center;
+  align-self:start;
+  gap:8px;
   min-width:0;
   min-height:49px;
-  margin-top:20px!important;
-  padding:8px!important;
+  margin:20px 0 0!important;
+  padding:8px 10px;
+  box-sizing:border-box;
   border:1px solid var(--line);
   border-radius:2px;
   background:rgba(255,252,244,.38);
 }
-.quick-sync-inline{
-  display:flex;
-  align-items:center;
-  gap:5px;
-  width:100%;
-  min-width:0;
-  flex-wrap:nowrap;
-}
-.quick-sync-entry-option .quick-sync-inline .sync-entry-toggle{
-  display:flex;
+.quick-sync-checkbox{
+  display:flex!important;
   flex:0 0 auto;
   align-items:center;
-  gap:5px;
+  gap:6px;
   margin:0!important;
   white-space:nowrap;
-  font-size:13px;
-  letter-spacing:0;
+  font-size:13px!important;
+  letter-spacing:0!important;
 }
-.quick-sync-entry-option .quick-sync-inline .sync-entry-toggle input{
+.quick-sync-checkbox input{
   flex:0 0 20px!important;
   width:20px!important;
   height:20px!important;
   min-width:20px!important;
+  min-height:20px!important;
   margin:0!important;
   padding:0!important;
 }
-.quick-sync-target-inline{
+.quick-sync-revealed-account{
   display:flex!important;
   flex:1 1 0;
   align-items:center;
-  gap:3px;
   min-width:0;
   margin:0!important;
   font-size:12px!important;
   letter-spacing:0!important;
 }
-.quick-sync-target-inline>span{flex:none}
-.quick-sync-entry-option .quick-sync-target-inline select{
+.quick-sync-revealed-account select{
   flex:1 1 0;
   width:1%;
   min-width:0;
   margin:0!important;
-  padding:7px 3px!important;
-  font-size:11px!important;
-  letter-spacing:0;
-}
-@media(max-width:430px){
-  .quick-amount-sync-row{
-    grid-template-columns:minmax(0, .36fr) minmax(0, .64fr);
-    gap:8px;
-  }
-  .quick-sync-entry-option{padding:7px!important}
-  .quick-sync-inline{gap:4px}
-  .quick-sync-entry-option .quick-sync-inline .sync-entry-toggle{
-    gap:4px;
-    font-size:12px;
-  }
-  .quick-sync-entry-option .quick-sync-target-inline select{
-    font-size:10px!important;
-    padding:7px 2px!important;
-  }
-}
-
-/* Quick Entry sync is a single account selector, aligned with Amount. */
-.quick-amount-sync-row .quick-sync-select-field{
-  display:block;
-  min-width:0;
-  margin-bottom:0!important;
-}
-.quick-sync-select-field select{
-  display:block;
-  width:100%;
-  min-width:0;
+  padding:7px 4px!important;
   box-sizing:border-box;
-  margin-top:7px;
-  padding:14px 10px!important;
-  font-size:14px!important;
+  font-size:12px!important;
   letter-spacing:0!important;
   text-overflow:ellipsis;
 }
 @media(max-width:430px){
-  .quick-amount-sync-row{grid-template-columns:minmax(0,.38fr) minmax(0,.62fr);gap:8px}
-  .quick-sync-select-field select{padding:14px 6px!important;font-size:12px!important}
+  .quick-amount-sync-row{grid-template-columns:minmax(0,.4fr) minmax(0,.6fr);gap:8px}
+  .quick-amount-sync-row .quick-sync-select-field{gap:5px;padding:7px 6px}
+  .quick-sync-checkbox{gap:4px;font-size:12px!important}
+  .quick-sync-revealed-account select{font-size:11px!important;padding:7px 2px!important}
 }
