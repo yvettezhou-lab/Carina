@@ -17,14 +17,27 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     window.location.reload();
   });
 
-  window.addEventListener('load', () => {
-    void navigator.serviceWorker
-      .register('/sw.js', { scope: '/', updateViaCache: 'none' })
-      .then((registration) => registration.update())
-      .catch((error) => {
-        console.warn('Carina update check failed', error);
-      });
-  }, { once: true });
+  let registration: ServiceWorkerRegistration | undefined;
+  let updateInFlight = false;
+  const checkForUpdates = async () => {
+    if (document.visibilityState === 'hidden' || updateInFlight) return;
+    updateInFlight = true;
+    try {
+      registration ??= await navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' });
+      await registration.update();
+    } catch (error) {
+      console.warn('Carina update check failed', error);
+    } finally {
+      updateInFlight = false;
+    }
+  };
+  window.addEventListener('load', () => { void checkForUpdates(); }, { once: true });
+  window.addEventListener('pageshow', () => { void checkForUpdates(); });
+  window.addEventListener('focus', () => { void checkForUpdates(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void checkForUpdates();
+  });
+  window.setInterval(() => { void checkForUpdates(); }, 5 * 60 * 1000);
 }
 
 class AppErrorBoundary extends React.Component<React.PropsWithChildren, { error: boolean }> {
