@@ -9,6 +9,7 @@ import { ReflectionChart } from '@/components/ReflectionChart';
 
 type ReflectionMode = 'category' | 'account' | 'person' | 'trend' | 'networth';
 type ReflectionPeriod = 'month' | 'year';
+type NetWorthRange = '6m' | '1y' | '2y' | '5y';
 
 function collapseForDrillDown(transactions: Transaction[]): Transaction[] {
   const grouped = new Map<string, Transaction[]>();
@@ -44,6 +45,7 @@ export function Reflection() {
   const [people, setPeople] = useState<Person[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [netWorthCurrency, setNetWorthCurrency] = useState('');
+  const [netWorthRange, setNetWorthRange] = useState<NetWorthRange>('6m');
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
