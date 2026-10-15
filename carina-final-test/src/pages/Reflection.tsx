@@ -84,7 +84,7 @@ export function Reflection() {
       return account.openingBalance + ownDelta + syncedDelta - outgoing + incoming;
     };
     const points = months.map(({ year: pointYear, month: pointMonth }) => {
-      const cutoff = pointYear === now.getFullYear() && pointMonth === now.getMonth() ? Date.now() : new Date(pointYear, pointMonth + 1, 1).getTime();
+      const cutoff = Math.min(Date.now(), new Date(pointYear, pointMonth + 1, 1).getTime());
       const values: Record<string, number> = {};
       currencies.forEach((currency) => { values[currency] = eligibleAccounts.filter((account) => account.currency === currency).reduce((sum, account) => sum + balanceAt(account, cutoff), 0); });
       return { key: pointYear + '-' + pointMonth, label: new Date(pointYear, pointMonth, 1).toLocaleDateString('en-US', { month: 'short' }), year: pointYear, month: pointMonth, values };
