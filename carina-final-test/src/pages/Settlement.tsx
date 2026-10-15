@@ -36,12 +36,14 @@ export function Settlement() {
   const [message, setMessage] = useState('');
 
   const refreshHistory = async () => {
-    const [allTransactions, allSettlements] = await Promise.all([
+    const [allTransactions, allSettlements, allCorrections] = await Promise.all([
       db.transactions.toArray(),
       db.settlements.toArray(),
+      db.settlementHistory.toArray(),
     ]);
     setHistoryRows(allTransactions.filter(t => t.kind === 'advance').sort((a, b) => b.dateTime - a.dateTime));
-    setSettlements(allSettlements.sort((a, b) => b.dateTime - a.dateTime));\n    setCorrectionHistory(allCorrections.sort((a, b) => b.createdAt - a.createdAt));
+    setSettlements(allSettlements.sort((a, b) => b.dateTime - a.dateTime));
+    setCorrectionHistory(allCorrections.sort((a, b) => b.createdAt - a.createdAt));
   };
 
   useEffect(() => {
