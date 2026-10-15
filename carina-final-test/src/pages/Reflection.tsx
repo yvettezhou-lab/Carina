@@ -2,12 +2,12 @@ import './Reflection.css';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '@/database/db';
-import type { Account, Category, Person, Transaction } from '@/models';
+import type { Account, Category, Person, Transaction, Transfer } from '@/models';
 import { buildReflectionAnnualData, buildReflectionData, filterReflectionAnnualTransactions, filterReflectionTransactions, filterReflectionTrendTransactions } from '@/services/statistics';
 import type { ReflectionBreakdown } from '@/services/statistics';
 import { ReflectionChart } from '@/components/ReflectionChart';
 
-type ReflectionMode = 'category' | 'account' | 'person' | 'trend';
+type ReflectionMode = 'category' | 'account' | 'person' | 'trend' | 'networth';
 type ReflectionPeriod = 'month' | 'year';
 
 function collapseForDrillDown(transactions: Transaction[]): Transaction[] {
@@ -42,6 +42,8 @@ export function Reflection() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
+  const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const [netWorthCurrency, setNetWorthCurrency] = useState('');
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
@@ -53,12 +55,13 @@ export function Reflection() {
 
   useEffect(() => {
     let alive = true;
-    Promise.all([db.transactions.toArray(), db.categories.toArray(), db.accounts.toArray(), db.people.toArray()]).then(([tx, cats, accts, ppl]) => {
+    Promise.all([db.transactions.toArray(), db.categories.toArray(), db.accounts.toArray(), db.people.toArray(), db.transfers.toArray()]).then(([tx, cats, accts, ppl, xfers]) => {
       if (!alive) return;
       setTransactions(tx);
       setCategories(cats);
       setAccounts(accts);
       setPeople(ppl);
+      setTransfers(xfers);
     });
     return () => { alive = false; };
   }, []);
@@ -66,6 +69,31 @@ export function Reflection() {
   const data = useMemo(() => buildReflectionData(transactions, categories, accounts, year, month), [transactions, categories, accounts, year, month]);
   const annualData = useMemo(() => buildReflectionAnnualData(transactions, categories, accounts, year), [transactions, categories, accounts, year]);
   const activeData = period === 'year' ? annualData : data;
+
+  const netWorthData = useMemo(() => {
+    const eligibleAccounts = accounts.filter((account) => account.includeInNetWorth !== false);
+    const currencies = Array.from(new Set(eligibleAccounts.map((account) => account.currency))).sort();
+    const months = period === 'year'
+      ? Array.from({ length: 12 }, (_, index) => ({ year, month: index }))
+      : Array.from({ length: 6 }, (_, index) => { const date = new Date(year, month - (5 - index), 1); return { year: date.getFullYear(), month: date.getMonth() }; });
+    const balanceAt = (account: Account, cutoff: number) => {
+      const ownDelta = transactions.filter((t) => t.accountId === account.id && t.dateTime < cutoff && t.kind !== 'settlement_difference').reduce((sum, t) => sum + (t.flow === 'income' ? t.amount : -t.amount), 0);
+      const syncedDelta = transactions.filter((t) => t.syncAccountId === account.id && t.dateTime < cutoff && t.kind !== 'settlement_difference').reduce((sum, t) => sum + (t.flow === 'income' ? t.amount : -t.amount), 0);
+      const outgoing = transfers.filter((t) => t.fromAccountId === account.id && t.dateTime < cutoff).reduce((sum, t) => sum + t.amount, 0);
+      const incoming = transfers.filter((t) => t.toAccountId === account.id && t.dateTime < cutoff).reduce((sum, t) => sum + t.amount, 0);
+      return account.openingBalance + ownDelta + syncedDelta - outgoing + incoming;
+    };
+    const points = months.map(({ year: pointYear, month: pointMonth }) => {
+      const cutoff = pointYear === now.getFullYear() && pointMonth === now.getMonth() ? Date.now() : new Date(pointYear, pointMonth + 1, 1).getTime();
+      const values: Record<string, number> = {};
+      currencies.forEach((currency) => { values[currency] = eligibleAccounts.filter((account) => account.currency === currency).reduce((sum, account) => sum + balanceAt(account, cutoff), 0); });
+      return { key: pointYear + '-' + pointMonth, label: new Date(pointYear, pointMonth, 1).toLocaleDateString('en-US', { month: 'short' }), year: pointYear, month: pointMonth, values };
+    });
+    const currentValues: Record<string, number> = {};
+    currencies.forEach((currency) => { currentValues[currency] = eligibleAccounts.filter((account) => account.currency === currency).reduce((sum, account) => sum + balanceAt(account, Date.now()), 0); });
+    const selectedCurrency = netWorthCurrency && currencies.includes(netWorthCurrency) ? netWorthCurrency : (currencies.includes('CNY') ? 'CNY' : currencies[0] || '');
+    return { currencies, points, currentValues, selectedCurrency };
+  }, [accounts, transactions, transfers, year, month, period, netWorthCurrency]);
 
   const personData = useMemo(() => {
     const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
@@ -190,7 +218,7 @@ export function Reflection() {
       </div>
 
       <div className="reflection-mode" role="tablist" aria-label="Reflection analysis">
-        {([['category', 'Category'], ['account', 'Account'], ['person', 'Person'], ['trend', 'Trend']] as const).map(([value, label]) => (
+        {([['category', 'Category'], ['account', 'Account'], ['person', 'Person'], ['trend', 'Trend'], ['networth', 'Net Worth']] as const).map(([value, label]) => (
           <button key={value} role="tab" aria-selected={mode === value} className={mode === value ? 'active' : ''} onClick={() => selectMode(value)}>{label}</button>
         ))}
       </div>
@@ -198,7 +226,17 @@ export function Reflection() {
       <div className="paper-panel reflection-analysis">
         <div className="panel-kicker">{mode === 'category' ? 'WHERE YOUR LIFE FLOWS' : mode === 'account' ? 'WHERE MONEY MOVES' : mode === 'person' ? 'WHO BENEFITS' : period === 'year' ? 'THE YEAR AT A GLANCE' : 'THE LAST SIX MONTHS'}</div>
         <h2>{mode === 'category' ? 'Spending by category' : mode === 'account' ? 'Spending by account' : mode === 'person' ? 'Spending by person' : period === 'year' ? 'Monthly money in motion' : 'Money in motion'}</h2>
-        {mode === 'trend' ? (
+        {mode === 'networth' ? (
+          <div className="reflection-networth">
+            <div className="reflection-networth-heading"><div><span className="panel-kicker">YOUR ASSETS OVER TIME</span><h3>Net worth history</h3></div><select aria-label="Net worth currency" value={netWorthData.selectedCurrency} onChange={(event) => setNetWorthCurrency(event.target.value)}>{netWorthData.currencies.map((currency) => <option key={currency} value={currency}>{currency}</option>)}</select></div>
+            <div className="reflection-networth-current"><span>Current net worth · {netWorthData.selectedCurrency || '—'}</span><strong>{netWorthData.selectedCurrency ? netWorthData.currentValues[netWorthData.selectedCurrency]?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}</strong></div>
+            <div className="reflection-networth-chart">
+              {(() => { const currency = netWorthData.selectedCurrency; const values = netWorthData.points.map((point) => point.values[currency] ?? 0); const min = Math.min(0, ...values); const max = Math.max(1, ...values); const range = max - min || 1; const coords = values.map((value, index) => ({ x: 12 + (values.length === 1 ? 0 : index * 276 / (values.length - 1)), y: 92 - (value - min) / range * 72 })); return <><svg viewBox="0 0 300 112" role="img" aria-label={'Monthly net worth in ' + currency}><line x1="8" y1="92" x2="292" y2="92" stroke="currentColor" strokeOpacity=".2" />{coords.length > 1 && <path d={coords.map((p, index) => (index ? 'L ' : 'M ') + p.x + ' ' + p.y).join(' ')} fill="none" stroke="var(--gold)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}{coords.map((p, index) => <circle key={index} cx={p.x} cy={p.y} r="3" fill="var(--gold)" />)}</svg><div className="reflection-networth-months">{netWorthData.points.map((point) => <span key={point.key}>{point.label}</span>)}</div></>; })()}
+            </div>
+            <div className="reflection-networth-list">{netWorthData.points.map((point, index) => { const value = point.values[netWorthData.selectedCurrency] ?? 0; const previous = netWorthData.points[index - 1]?.values[netWorthData.selectedCurrency]; const delta = previous === undefined ? undefined : value - previous; return <div key={point.key}><span>{point.label} {period === 'year' ? '' : point.year}</span><strong>{value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong><small className={delta === undefined ? '' : delta >= 0 ? 'positive' : 'negative'}>{delta === undefined ? '—' : (delta >= 0 ? '+' : '−') + Math.abs(delta).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</small></div>; })}</div>
+            <p className="reflection-networth-note">Balances are shown separately by currency; currencies are not added together or converted. Historical points are reconstructed from opening balances, transactions and transfers.</p>
+          </div>
+        ) : mode === 'trend' ? (
           <ReflectionChart mode="trend" chartType="bar" data={activeData.trend} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
         ) : mode === 'category' ? (
           <ReflectionChart mode="category" chartType={chartType} data={activeData.category} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
@@ -208,7 +246,7 @@ export function Reflection() {
           <ReflectionChart mode="person" chartType={chartType} data={personData} selectedId={selectedId} onSelect={selectChart} onToggleChart={toggleChartType} />
         )}
 
-        {selectedId && selectedTransactions.length > 0 && (
+        {mode !== 'networth' && selectedId && selectedTransactions.length > 0 && (
           <div className="reflection-drilldown">
             {mode === 'trend' ? (
               <div className="reflection-drilldown-head">
@@ -229,7 +267,7 @@ export function Reflection() {
             )}
           </div>
         )}
-        {selectedId && selectedTransactions.length === 0 && <div className="reflection-selection-note">No records in this selection.</div>}
+        {mode !== 'networth' && selectedId && selectedTransactions.length === 0 && <div className="reflection-selection-note">No records in this selection.</div>}
       </div>
 
       <div className="reflection-note">
