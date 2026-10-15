@@ -59,3 +59,12 @@
   .settlement-history-filters{grid-template-columns:1fr 1fr}
   .settlement-history-item{padding:10px}
 }
+
+.settlement-history-edit{display:inline-flex;align-items:center;justify-content:center;margin-top:9px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:rgba(255,255,255,.4);color:var(--ink);font:inherit;font-size:12px;cursor:pointer}
+.settlement-correction-editor{display:flex;flex-direction:column;gap:8px;margin-top:9px;padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(255,252,244,.5)}
+.settlement-correction-editor select,.settlement-correction-editor input{width:100%;min-width:0;height:40px;box-sizing:border-box;margin:0;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:rgba(255,255,255,.65);color:var(--ink);font:inherit;font-size:13px}
+.settlement-correction-save{min-height:38px}
+.settlement-history-audit{display:flex;flex-direction:column;gap:3px;margin-top:8px;padding:7px 9px;border-left:2px solid var(--gold);background:rgba(174,139,75,.08);font-size:11px}
+.settlement-history-audit strong{font-size:11px;color:var(--ink)}
+.settlement-history-audit span{color:var(--ink)}
+.settlement-history-audit small{color:var(--ink-soft);overflow-wrap:anywhere}
