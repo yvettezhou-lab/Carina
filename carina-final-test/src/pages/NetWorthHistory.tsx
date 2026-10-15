@@ -181,7 +181,7 @@ export function NetWorthHistory() {
                       const height = Math.max(2, value / max * 82);
                       const x = 8 + slot * index + (slot - barWidth) / 2;
                       const y = 104 - height;
-                      return <g key={data.points[index].key}><rect x={x} y={y} width={barWidth} height={height} rx="3" fill="var(--gold)" opacity={index === values.length - 1 ? 1 : .68}/><text x={x + barWidth / 2} y={Math.max(10, y - 5)} textAnchor="middle" fontSize="7" fill="var(--ink-soft)">{(value / 1000).toFixed(1)}k</text></g>;
+                      return <g key={data.points[index].key}><rect x={x} y={y} width={barWidth} height={height} rx="3" fill="var(--networth-chart-color)" opacity={index === values.length - 1 ? 1 : .68}/><text x={x + barWidth / 2} y={Math.max(10, y - 5)} textAnchor="middle" fontSize="7" fill="var(--ink-soft)">{(value / 1000).toFixed(1)}k</text></g>;
                     })}
                   </svg>
                   <div className="networth-months" style={{ gridTemplateColumns: 'repeat(' + data.points.length + ', minmax(0, 1fr))' }}>
