@@ -301,3 +301,21 @@
   .reflection-analysis .reflection-donut{margin:0 auto}
   .reflection-analysis .trend-legend{justify-content:center}
 }
+
+.reflection-networth{display:flex;flex-direction:column;gap:14px;min-width:0}
+.reflection-networth-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.reflection-networth-heading h3{margin:5px 0 0;font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;font-weight:400;color:var(--ink)}
+.reflection-networth-heading select{max-width:100px;min-width:76px;padding:7px 9px;border:1px solid var(--line);border-radius:3px;background:rgba(255,252,244,.7);color:var(--ink);font:inherit;font-size:12px}
+.reflection-networth-current{display:flex;flex-direction:column;gap:5px;padding:13px 14px;border:1px solid var(--line);background:rgba(255,252,244,.72)}
+.reflection-networth-current span{font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.reflection-networth-current strong{font-size:23px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.reflection-networth-chart{min-width:0;padding:8px 0 0}
+.reflection-networth-chart svg{display:block;width:100%;height:auto;overflow:visible}
+.reflection-networth-months{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;color:var(--muted);font-size:10px;text-align:center}
+.reflection-networth-list{display:flex;flex-direction:column;gap:0}
+.reflection-networth-list>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) minmax(0,.85fr);align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:12px}
+.reflection-networth-list>div>span{color:var(--ink-soft)}
+.reflection-networth-list strong{text-align:right;font-size:12px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.reflection-networth-list small{text-align:right;font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.reflection-networth-note{margin:0;color:var(--muted);font-size:10px;line-height:1.5}
+@media(max-width:430px){.reflection-networth-heading h3{font-size:22px}.reflection-networth-current strong{font-size:20px}.reflection-networth-list>div{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr) minmax(0,.8fr);gap:5px;font-size:11px}.reflection-networth-list strong{font-size:11px}.reflection-networth-list small{font-size:10px}}
