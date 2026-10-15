@@ -320,3 +320,6 @@
 .reflection-networth-list small{text-align:right;font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .reflection-networth-note{margin:0;color:var(--muted);font-size:10px;line-height:1.5}
 @media(max-width:430px){.reflection-networth-heading h3{font-size:22px}.reflection-networth-current strong{font-size:20px}.reflection-networth-list>div{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr) minmax(0,.8fr);gap:5px;font-size:11px}.reflection-networth-list strong{font-size:11px}.reflection-networth-list small{font-size:10px}}
+
+.reflection-networth-controls{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0}.reflection-networth-controls select{width:auto;max-width:112px;min-width:0;flex:0 1 auto}
+@media(max-width:430px){.reflection-networth-controls{flex-wrap:wrap;max-width:145px}.reflection-networth-controls select{max-width:100px;font-size:11px;padding:6px 5px}.reflection-networth-heading{align-items:flex-start}}
