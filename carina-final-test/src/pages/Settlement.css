@@ -21,7 +21,7 @@
 .settlement-field-grid>.settlement-field{min-width:0}
 .settlement-field{display:flex;min-width:0;flex-direction:column;gap:4px}
 .settlement-field>span{font-size:12px;color:var(--ink-soft)}
- .settlement-field-grid .settlement-field select,
+.settlement-field-grid .settlement-field select,
 .settlement-field-grid .settlement-field input[type="date"]{display:block!important;width:100%!important;min-width:0!important;height:42px!important;min-height:42px!important;max-width:100%!important;box-sizing:border-box!important;margin:0!important;padding:6px 8px!important}
 .settlement-field-grid .settlement-field input[type="date"]{-webkit-appearance:none!important;appearance:none!important;inline-size:100%!important;min-inline-size:0!important;max-inline-size:100%!important;overflow:hidden!important;font-size:16px!important;color:var(--ink)!important;color-scheme:light!important;background:rgba(255,252,244,.7)!important;border:1px solid var(--line)!important;border-radius:2px!important;text-align:left!important;-webkit-text-fill-color:var(--ink)!important}
 .settlement-field-grid .settlement-field input[type="date"]::-webkit-date-and-time-value{text-align:left!important;min-height:1.2em!important}
@@ -31,14 +31,31 @@
 .settlement-summary{margin-top:7px;padding:7px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
 .settlement-summary>div{display:flex;justify-content:space-between;gap:16px;font-size:14px}
 .settlement-summary b{font-variant-numeric:tabular-nums}
-
 .settlement-message{margin-top:5px;text-align:center;font-size:12px;color:var(--ink-soft)}
+.settlement-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:0 0 10px;padding:4px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.22)}
+.settlement-tabs button{min-height:38px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--ink-soft);font:inherit;font-size:14px;cursor:pointer}
+.settlement-tabs button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.settlement-history{display:flex;flex-direction:column;gap:9px;min-width:0}
+.settlement-history-totals{display:grid;grid-template-columns:1fr;gap:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.3)}
+.settlement-history-totals>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,.07);font-size:13px}
+.settlement-history-totals>div:last-child{border-bottom:0}
+.settlement-history-totals span{color:var(--ink-soft)}
+.settlement-history-totals strong{font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.settlement-history-filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.2)}
+.settlement-history-filters select,.settlement-history-filters input{width:100%;min-width:0;height:40px;box-sizing:border-box;margin:0;padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:rgba(255,252,244,.7);color:var(--ink);font:inherit;font-size:13px}
+.settlement-history-list{display:flex;flex-direction:column;gap:7px}
+.settlement-history-item{min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.34)}
+.settlement-history-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.settlement-history-item-top strong{min-width:0;font-size:14px;overflow-wrap:anywhere}
+.settlement-history-item-top b{white-space:nowrap;font-size:15px;font-variant-numeric:tabular-nums}
+.settlement-history-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:6px;color:var(--ink-soft);font-size:11px}
+.history-status{padding:2px 7px;border-radius:999px}
+.history-status.settled{background:rgba(70,110,78,.12);color:#426b4b}
+.history-status.pending{background:rgba(160,112,45,.12);color:#916b2d}
+.settlement-history-detail{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;color:var(--ink-soft);font-size:11px;overflow-wrap:anywhere}
 @media(max-width:600px){
-  .settlement-field-grid{
-    grid-template-columns:minmax(0,1fr)!important;
-  }
-  .settlement-field-grid>.settlement-field{
-    width:100%!important;
-    max-width:100%!important;
-  }
+  .settlement-field-grid{grid-template-columns:minmax(0,1fr)!important}
+  .settlement-field-grid>.settlement-field{width:100%!important;max-width:100%!important}
+  .settlement-history-filters{grid-template-columns:1fr 1fr}
+  .settlement-history-item{padding:10px}
 }
