@@ -86,9 +86,9 @@ export function Settlement() {
 
   const historyAdvanceTotal = history.reduce((sum, item) => sum + item.amount, 0);
   const historySettledTotal = history.filter(item => item.advanceStatus === 'settled').reduce((sum, item) => sum + item.amount, 0);
-  const settlementById = useMemo(() => new Map(settlements.map(s => [s.id, s])), [settlements]);
-  const peopleById = useMemo(() => new Map(people.map(p => [p.id, p.name])), [people]);
-  const accountsById = useMemo(() => new Map(accounts.map(a => [a.id, a.name])), [accounts]);
+  const settlementById = useMemo(() => new Map<string, SettlementRecord>(settlements.map(s => [s.id, s] as const)), [settlements]);
+  const peopleById = useMemo(() => new Map<string, string>(people.map(p => [p.id, p.name] as const)), [people]);
+  const accountsById = useMemo(() => new Map<string, string>(accounts.map(a => [a.id, a.name] as const)), [accounts]);
 
   const toggle = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
