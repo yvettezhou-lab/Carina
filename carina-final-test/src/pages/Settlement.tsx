@@ -99,15 +99,18 @@ export function Settlement() {
   const peopleById = useMemo(() => new Map<string, string>(people.map(p => [p.id, p.name] as const)), [people]);
   const accountsById = useMemo(() => new Map<string, string>(accounts.map(a => [a.id, a.name] as const)), [accounts]);
 
-  const handleCorrectAccount = async (settlementId: string) => {
+  const handleCorrectAccount = async (settlement: SettlementRecord) => {
     if (!correctionAccountId) return setCorrectionMessage('请选择正确的收款账户');
+    if (correctionAmount.trim() === '' || !Number.isFinite(Number(correctionAmount)) || Number(correctionAmount) < 0) return setCorrectionMessage('请输入有效的实际收回金额');
+    if (!correctionDate) return setCorrectionMessage('请选择实际收回日期');
     try {
-      const result = await correctSettlementAccount({settlementId,newAccountId:correctionAccountId,reason:correctionReason});
-      if (!result.changed) { setCorrectionMessage('账户没有变化'); return; }
+      const [year, month, day] = correctionDate.split('-').map(Number);
+      const result = await correctSettlement({settlementId:settlement.id,newAccountId:correctionAccountId,receivedAmount:Number(correctionAmount),dateTime:new Date(year,month-1,day).getTime(),reason:correctionReason});
+      if (!result.changed) { setCorrectionMessage('结算信息没有变化'); return; }
       await refreshHistory();
       setEditingSettlementId('');
       setCorrectionReason('');
-      setCorrectionMessage('账户已更正，历史已保存');
+      setCorrectionMessage('结算信息已更正，历史已保存');
     } catch (error) {
       setCorrectionMessage(error instanceof Error ? error.message : '更正失败');
     }
@@ -230,7 +233,9 @@ export function Settlement() {
                       <button type="button" className="settlement-history-edit" onClick={() => { setEditingSettlementId(editingSettlementId === settlement.id ? '' : settlement.id); setCorrectionAccountId(settlement.accountId); setCorrectionAmount(String(settlement.receivedAmount)); setCorrectionDate(new Date(settlement.dateTime).toLocaleDateString('en-CA')); setCorrectionReason(''); setCorrectionMessage(''); }}>更正结算信息</button>
                       {editingSettlementId === settlement.id && <div className="settlement-correction-editor">
                         <label className="settlement-field"><span>正确的收款账户</span><select value={correctionAccountId} onChange={e => setCorrectionAccountId(e.target.value)}><option value="">请选择账户</option>{accounts.filter(a => !a.isArchived).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
-                        <label className="settlement-field"><span>实际收回金额</span><input inputMode="decimal" value={correctionAmount} onChange={e => setCorrectionAmount(e.target.value.replace(/[^\\d.+-]/g, ''))} /></label>\n                        <label className="settlement-field"><span>实际收回日期</span><input type="date" value={correctionDate} onChange={e => setCorrectionDate(e.target.value)} /></label>\n                        <label className="settlement-field"><span>更正原因（可选）</span><input value={correctionReason} onChange={e => setCorrectionReason(e.target.value)} placeholder="例如：收款账户或金额记错" /></label>
+                        <label className="settlement-field"><span>实际收回金额</span><input inputMode="decimal" value={correctionAmount} onChange={e => setCorrectionAmount(e.target.value.replace(/[^\\d.+-]/g, ''))} /></label>
+                        <label className="settlement-field"><span>实际收回日期</span><input type="date" value={correctionDate} onChange={e => setCorrectionDate(e.target.value)} /></label>
+                        <label className="settlement-field"><span>更正原因（可选）</span><input value={correctionReason} onChange={e => setCorrectionReason(e.target.value)} placeholder="例如：收款账户或金额记错" /></label>
                         <button type="button" className="primary-button settlement-correction-save" onClick={() => void handleCorrectAccount(settlement)}>确认更正</button>
                         {correctionMessage && <div className="settlement-message">{correctionMessage}</div>}
                       </div>}
