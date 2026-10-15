@@ -2,7 +2,7 @@ import './Settlement.css';
 import { useEffect, useMemo, useState } from 'react';
 import { db } from '@/database/db';
 import type { Account, Person, Settlement as SettlementRecord, SettlementHistory, Transaction } from '@/models';
-import { correctSettlementAccount, getPendingAdvances, settleAdvances } from '@/services/settlements';
+import { correctSettlement, getPendingAdvances, settleAdvances } from '@/services/settlements';
 
 type HistoryStatus = 'all' | 'pending' | 'settled';
 
@@ -16,6 +16,8 @@ export function Settlement() {
   const [correctionHistory, setCorrectionHistory] = useState<SettlementHistory[]>([]);
   const [editingSettlementId, setEditingSettlementId] = useState('');
   const [correctionAccountId, setCorrectionAccountId] = useState('');
+  const [correctionAmount, setCorrectionAmount] = useState('');
+  const [correctionDate, setCorrectionDate] = useState('');
   const [correctionReason, setCorrectionReason] = useState('');
   const [correctionMessage, setCorrectionMessage] = useState('');
   const [selectedPersonId, setSelectedPersonId] = useState('');
@@ -225,14 +227,14 @@ export function Settlement() {
                     <div className="settlement-history-detail"><span>代付账户：{accountsById.get(item.accountId) || '账户已删除'}</span>{settlement && <span>收款账户：{accountsById.get(settlement.accountId) || '账户已删除'}</span>}</div>
                     {settlement && <div className="settlement-history-detail"><span>实际收回：¥{settlement.receivedAmount.toFixed(2)}</span><span>差额：{settlement.difference > 0 ? '+' : ''}¥{settlement.difference.toFixed(2)}</span></div>}
                     {settlement && <>
-                      <button type="button" className="settlement-history-edit" onClick={() => { setEditingSettlementId(editingSettlementId === settlement.id ? '' : settlement.id); setCorrectionAccountId(settlement.accountId); setCorrectionReason(''); setCorrectionMessage(''); }}>修改收款账户</button>
+                      <button type="button" className="settlement-history-edit" onClick={() => { setEditingSettlementId(editingSettlementId === settlement.id ? '' : settlement.id); setCorrectionAccountId(settlement.accountId); setCorrectionAmount(String(settlement.receivedAmount)); setCorrectionDate(new Date(settlement.dateTime).toLocaleDateString('en-CA')); setCorrectionReason(''); setCorrectionMessage(''); }}>更正结算信息</button>
                       {editingSettlementId === settlement.id && <div className="settlement-correction-editor">
                         <label className="settlement-field"><span>正确的收款账户</span><select value={correctionAccountId} onChange={e => setCorrectionAccountId(e.target.value)}><option value="">请选择账户</option>{accounts.filter(a => !a.isArchived).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
-                        <label className="settlement-field"><span>更正原因（可选）</span><input value={correctionReason} onChange={e => setCorrectionReason(e.target.value)} placeholder="例如：收款时选错账户" /></label>
-                        <button type="button" className="primary-button settlement-correction-save" onClick={() => void handleCorrectAccount(settlement.id)}>确认更正</button>
+                        <label className="settlement-field"><span>实际收回金额</span><input inputMode="decimal" value={correctionAmount} onChange={e => setCorrectionAmount(e.target.value.replace(/[^\\d.+-]/g, ''))} /></label>\n                        <label className="settlement-field"><span>实际收回日期</span><input type="date" value={correctionDate} onChange={e => setCorrectionDate(e.target.value)} /></label>\n                        <label className="settlement-field"><span>更正原因（可选）</span><input value={correctionReason} onChange={e => setCorrectionReason(e.target.value)} placeholder="例如：收款账户或金额记错" /></label>
+                        <button type="button" className="primary-button settlement-correction-save" onClick={() => void handleCorrectAccount(settlement)}>确认更正</button>
                         {correctionMessage && <div className="settlement-message">{correctionMessage}</div>}
                       </div>}
-                      {correctionHistory.filter(h => h.settlementId === settlement.id).map(h => <div className="settlement-history-audit" key={h.id}><strong>账户更正</strong><span>{h.oldAccountName} → {h.newAccountName}</span><small>{new Date(h.createdAt).toLocaleString('zh-CN')}{h.reason ? ` · ${h.reason}` : ''}</small></div>)}
+                      {correctionHistory.filter(h => h.settlementId === settlement.id).map(h => <div className="settlement-history-audit" key={h.id}><strong>结算更正</strong><span>账户：{h.oldAccountName} → {h.newAccountName}</span><span>金额：¥{h.oldReceivedAmount.toFixed(2)} → ¥{h.newReceivedAmount.toFixed(2)}</span><small>{new Date(h.createdAt).toLocaleString('zh-CN')}{h.reason ? ` · ${h.reason}` : ''}</small></div>)}
                     </>}
                   </article>
                 );
