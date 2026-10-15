@@ -84,9 +84,25 @@ export function NetWorthHistory() {
     }
   }
 
+  // Current balances must remain available even before a historical baseline is configured.
+  // Match the account balance service: opening balance + transactions + synced effects + transfers.
+  const liveCurrentValues = useMemo(() => {
+    const values: Record<string, number> = {};
+    currencies.forEach((code) => {
+      values[code] = eligible.filter((account) => account.currency === code).reduce((total, account) => {
+        const ownDelta = transactions.filter((t) => t.accountId === account.id && t.kind !== 'settlement_difference').reduce((sum, t) => sum + (t.flow === 'income' ? t.amount : -t.amount), 0);
+        const syncDelta = transactions.filter((t) => t.syncAccountId === account.id && t.kind !== 'settlement_difference').reduce((sum, t) => sum + (t.flow === 'income' ? t.amount : -t.amount), 0);
+        const outgoing = transfers.filter((t) => t.fromAccountId === account.id).reduce((sum, t) => sum + t.amount, 0);
+        const incoming = transfers.filter((t) => t.toAccountId === account.id).reduce((sum, t) => sum + t.amount, 0);
+        return total + account.openingBalance + ownDelta + syncDelta - outgoing + incoming;
+      }, 0);
+    });
+    return values;
+  }, [eligible, transactions, transfers, currencies]);
+
   const data = useMemo(() => {
     const selectedCurrency = currency && currencies.includes(currency) ? currency : (currencies.includes('CNY') ? 'CNY' : currencies[0] || '');
-    if (!baseline) return { points: [], currentValues: {} as Record<string, number>, selectedCurrency, hasBaseline: false };
+    if (!baseline) return { points: [], currentValues: liveCurrentValues, selectedCurrency, hasBaseline: false };
     const start = new Date(baseline.date + 'T00:00:00');
     const count = range === '6m' ? 6 : range === '1y' ? 12 : range === '2y' ? 24 : 60;
     const monthStart = new Date(start.getFullYear(), start.getMonth(), 1);
@@ -114,7 +130,7 @@ export function NetWorthHistory() {
     const currentValues: Record<string, number> = {};
     currencies.forEach((code) => { currentValues[code] = eligible.filter((account) => account.currency === code).reduce((sum, account) => sum + balanceAt(account, Date.now()), 0); });
     return { points, currentValues, selectedCurrency, hasBaseline: true };
-  }, [accounts, transactions, transfers, baseline, range, currency, currencies]);
+  }, [accounts, transactions, transfers, baseline, range, currency, currencies, liveCurrentValues]);
 
   const format = (value: number) => value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
