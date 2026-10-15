@@ -6,6 +6,14 @@ import { correctSettlement, getPendingAdvances, settleAdvances } from '@/service
 
 type HistoryStatus = 'all' | 'pending' | 'settled';
 
+function formatDateInput(timestamp: number) {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function Settlement() {
   const [view, setView] = useState<'settle' | 'history'>('settle');
   const [people, setPeople] = useState<Person[]>([]);
@@ -230,7 +238,7 @@ export function Settlement() {
                     <div className="settlement-history-detail"><span>代付账户：{accountsById.get(item.accountId) || '账户已删除'}</span>{settlement && <span>收款账户：{accountsById.get(settlement.accountId) || '账户已删除'}</span>}</div>
                     {settlement && <div className="settlement-history-detail"><span>实际收回：¥{settlement.receivedAmount.toFixed(2)}</span><span>差额：{settlement.difference > 0 ? '+' : ''}¥{settlement.difference.toFixed(2)}</span></div>}
                     {settlement && <>
-                      <button type="button" className="settlement-history-edit" onClick={() => { setEditingSettlementId(editingSettlementId === settlement.id ? '' : settlement.id); setCorrectionAccountId(settlement.accountId); setCorrectionAmount(String(settlement.receivedAmount)); setCorrectionDate(new Date(settlement.dateTime).toLocaleDateString('en-CA')); setCorrectionReason(''); setCorrectionMessage(''); }}>更正结算信息</button>
+                      <button type="button" className="settlement-history-edit" onClick={() => { setEditingSettlementId(editingSettlementId === settlement.id ? '' : settlement.id); setCorrectionAccountId(settlement.accountId); setCorrectionAmount(String(settlement.receivedAmount)); setCorrectionDate(formatDateInput(settlement.dateTime)); setCorrectionReason(''); setCorrectionMessage(''); }}>更正结算信息</button>
                       {editingSettlementId === settlement.id && <div className="settlement-correction-editor">
                         <label className="settlement-field"><span>正确的收款账户</span><select value={correctionAccountId} onChange={e => setCorrectionAccountId(e.target.value)}><option value="">请选择账户</option>{accounts.filter(a => !a.isArchived).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
                         <label className="settlement-field"><span>实际收回金额</span><input inputMode="decimal" value={correctionAmount} onChange={e => setCorrectionAmount(e.target.value.replace(/[^\\d.+-]/g, ''))} /></label>
