@@ -22,3 +22,16 @@
 .networth-note{margin:0;color:var(--muted);font-size:11px;line-height:1.55}
 .networth-empty{margin:0;color:var(--muted);font-size:13px}
 @media(max-width:430px){.networth-panel-heading{align-items:flex-start;flex-wrap:wrap}.networth-panel-heading h2{font-size:25px}.networth-controls{max-width:100%}.networth-controls select{max-width:112px;font-size:11px;padding:6px 5px}.networth-current strong{font-size:22px}.networth-month-list>div{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr) minmax(0,.8fr);gap:5px;font-size:11px}.networth-month-list strong{font-size:11px}.networth-month-list small{font-size:10px}}
+
+.networth-baseline-prompt,.networth-baseline-editor{padding:14px;border:1px solid var(--line);background:rgba(255,252,244,.58);display:flex;flex-direction:column;gap:10px}
+.networth-baseline-prompt h3{margin:0;font-size:16px;color:var(--ink)}
+.networth-baseline-prompt p,.networth-baseline-editor>p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+.networth-baseline-prompt button,.networth-baseline-editor>button,.networth-baseline-status button{align-self:flex-start;padding:8px 12px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);font:inherit;font-size:12px}
+.networth-baseline-status{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font-size:12px}
+.networth-baseline-status strong{color:var(--ink)}
+.networth-baseline-editor>label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ink-soft)}
+.networth-baseline-editor input{width:100%;min-width:0;box-sizing:border-box;padding:9px 10px;border:1px solid var(--line);border-radius:3px;background:rgba(255,255,255,.68);color:var(--ink);font:inherit}
+.networth-account-balance{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:center;gap:8px!important;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.networth-account-balance>span{overflow-wrap:anywhere}
+.networth-account-balance small{display:block;color:var(--muted);font-size:10px}
+.networth-error{margin:0;color:var(--negative,#985c50);font-size:12px}
