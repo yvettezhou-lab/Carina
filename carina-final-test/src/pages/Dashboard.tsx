@@ -105,11 +105,11 @@ export function Dashboard() {
         <div className="date-stamp">{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</div>
       </header>
 
-      <button type="button" className="hero-card hero-card-link" onClick={() => navigate('/net-worth')} aria-label="Open net worth history">
+      <button type="button" className="hero-card" onClick={() => navigate('/net-worth')} aria-label="Open net worth history">
         <span className="hero-card-kicker">NET WORTH</span>
         <span className="hero-amount">¥{netWorth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
         <span className="hero-rule" />
-        <span className="hero-card-foot"><span>Your financial story, kept close.</span><span>View history ↗</span></span>
+        <span className="hero-card-foot"><span>Your financial story, kept close.</span><span>2026</span></span>
       </button>
 
       <div className="section-heading">
