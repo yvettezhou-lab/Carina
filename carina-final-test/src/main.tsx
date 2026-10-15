@@ -6,6 +6,27 @@ import { ensureSeedData } from '@/services/seed';
 import './styles.css';
 import './quick-entry-fix.css';
 
+// Centralized PWA update lifecycle: check on launch and reload when a new worker takes control.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  let reloaded = false;
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloaded) return;
+    reloaded = true;
+    window.location.reload();
+  });
+
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker
+      .register('/sw.js', { scope: '/', updateViaCache: 'none' })
+      .then((registration) => registration.update())
+      .catch((error) => {
+        console.warn('Carina update check failed', error);
+      });
+  }, { once: true });
+}
+
 class AppErrorBoundary extends React.Component<React.PropsWithChildren, { error: boolean }> {
   state = { error: false };
   static getDerivedStateFromError() { return { error: true }; }
