@@ -158,7 +158,7 @@ export function Settlement() {
     <section>
       <div className="settlement-intro">
         <strong>代付结算</strong>
-        <p>管理待收回代付，也可以回顾历史垫付金额与结算状态。</p>
+        <p>管理待收回的代付款项，并查看历史垫付金额及结算情况。</p>
       </div>
 
       <div className="settlement-tabs" role="tablist" aria-label="代收代付视图">
