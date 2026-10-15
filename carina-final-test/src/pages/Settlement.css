@@ -72,7 +72,32 @@
 }
 .settlement-section input[type="date"]::-webkit-date-and-time-value,
 .settlement-history-filters input[type="date"]::-webkit-date-and-time-value,
-.settlement-correction-editor input[type="date"]::-webkit-date-and-time-value{min-height:1.2em!important;padding:0!important;text-align:left!important}
+.settlement-correction-editor input[type="date"]::-webkit-date-and-time-value{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  line-height:normal!important;
+  text-align:left!important;
+}
+.settlement-section .settlement-field input:not([type="checkbox"]),
+.settlement-history-filters .settlement-field input,
+.settlement-correction-editor .settlement-field input{
+  line-height:normal!important;
+  vertical-align:middle!important;
+}
+.settlement-section .settlement-field input[type="date"],
+.settlement-history-filters .settlement-field input[type="date"],
+.settlement-correction-editor .settlement-field input[type="date"]{
+  display:flex!important;
+  align-items:center!important;
+  padding-top:0!important;
+  padding-bottom:0!important;
+}
 .settlement-section input[type="date"]::-webkit-calendar-picker-indicator,
 .settlement-history-filters input[type="date"]::-webkit-calendar-picker-indicator,
 .settlement-correction-editor input[type="date"]::-webkit-calendar-picker-indicator{opacity:.75!important;margin:0!important}
