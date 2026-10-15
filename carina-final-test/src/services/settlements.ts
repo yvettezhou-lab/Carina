@@ -221,7 +221,7 @@ export async function correctSettlement(i:{
       }
       const expectedAmount=money(originals.reduce((sum,t)=>sum+t.amount,0));
       const difference=money(receivedAmount-expectedAmount);
-      const linked=await db.transactions.where('settlementId').equals(settlement.id).toArray();
+      const linked=(await db.transactions.toArray()).filter(t=>t.settlementId===settlement.id);
       const derived=linked.filter(t=>t.kind==='reimbursement'||t.kind==='settlement_difference'||(t.kind==='normal'&&t.description==='代付多收差额'&&t.flow==='income'));
       if(settlement.receivedAmount>0&&!derived.some(t=>t.kind==='reimbursement')) throw new Error('未找到收款本金流水，已取消更正');
       if(settlement.difference>0&&!derived.some(t=>t.kind==='normal'&&t.description==='代付多收差额')) throw new Error('未找到多收差额流水，已取消更正');
