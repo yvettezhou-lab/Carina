@@ -75,9 +75,7 @@ export function Reflection() {
   const netWorthData = useMemo(() => {
     const eligibleAccounts = accounts.filter((account) => account.includeInNetWorth !== false);
     const currencies = Array.from(new Set(eligibleAccounts.map((account) => account.currency))).sort();
-    const months = period === 'year'
-      ? Array.from({ length: 12 }, (_, index) => ({ year, month: index }))
-      : Array.from({ length: 6 }, (_, index) => { const date = new Date(year, month - (5 - index), 1); return { year: date.getFullYear(), month: date.getMonth() }; });
+    const months = Array.from({ length: netWorthRange === '6m' ? 6 : netWorthRange === '1y' ? 12 : netWorthRange === '2y' ? 24 : 60 }, (_, index) => { const count = netWorthRange === '6m' ? 6 : netWorthRange === '1y' ? 12 : netWorthRange === '2y' ? 24 : 60; const date = new Date(year, month - (count - 1 - index), 1); return { year: date.getFullYear(), month: date.getMonth() }; });
     const balanceAt = (account: Account, cutoff: number) => {
       const ownDelta = transactions.filter((t) => t.accountId === account.id && t.dateTime < cutoff && t.kind !== 'settlement_difference').reduce((sum, t) => sum + (t.flow === 'income' ? t.amount : -t.amount), 0);
       const syncedDelta = transactions.filter((t) => t.syncAccountId === account.id && t.dateTime < cutoff && t.kind !== 'settlement_difference').reduce((sum, t) => sum + (t.flow === 'income' ? t.amount : -t.amount), 0);
