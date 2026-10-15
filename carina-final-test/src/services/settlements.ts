@@ -192,3 +192,64 @@ export async function settleAdvances(i:{
 
   return settlementId;
 }
+
+
+export async function correctSettlementAccount(i:{
+  settlementId:string;
+  newAccountId:string;
+  reason?:string;
+}){
+  const now=Date.now();
+  return db.transaction(
+    'rw',
+    db.transactions,
+    db.accounts,
+    db.settlements,
+    db.settlementHistory,
+    async()=>{
+      const settlement=await db.settlements.get(i.settlementId);
+      if(!settlement) throw new Error('找不到这笔结算记录');
+      const oldAccount=await db.accounts.get(settlement.accountId);
+      const newAccount=await db.accounts.get(i.newAccountId);
+      if(!newAccount || newAccount.isArchived) throw new Error('请选择有效的收款账户');
+      if(!oldAccount) throw new Error('原收款账户不存在，无法安全更正');
+      if(settlement.accountId===i.newAccountId) return {changed:false,historyId:''};
+
+      const linked=await db.transactions.where('settlementId').equals(settlement.id).toArray();
+      const affected=linked.filter(t=>
+        t.kind==='reimbursement' ||
+        (t.kind==='normal' && t.description==='代付多收差额' && t.flow==='income')
+      );
+      if(settlement.receivedAmount>0 && !affected.some(t=>t.kind==='reimbursement')){
+        throw new Error('未找到对应的收款本金流水，已取消更正以保护账本数据');
+      }
+      if(settlement.difference>0 && !affected.some(t=>t.kind==='normal' && t.description==='代付多收差额')){
+        throw new Error('未找到对应的多收差额流水，已取消更正以保护账本数据');
+      }
+
+      // Move the actual cash-in entries to the corrected account in one atomic
+      // transaction. Because balances are derived from transaction.accountId,
+      // this reverses the old account effect and applies it to the new one
+      // without creating duplicate cash movements or deleting the audit trail.
+      for(const tx of affected){
+        await db.transactions.update(tx.id,{accountId:i.newAccountId,updatedAt:now});
+      }
+      await db.settlements.update(settlement.id,{accountId:i.newAccountId});
+      const historyId=uid();
+      await db.settlementHistory.add({
+        id:historyId,
+        settlementId:settlement.id,
+        action:'account_corrected',
+        oldAccountId:oldAccount.id,
+        newAccountId:newAccount.id,
+        oldAccountName:oldAccount.name,
+        newAccountName:newAccount.name,
+        reason:i.reason?.trim()||undefined,
+        createdAt:now,
+        affectedTransactionIds:affected.map(t=>t.id),
+      });
+      await db.accounts.update(newAccount.id,{lastUsedAt:now});
+      return {changed:true,historyId};
+    }
+  );
+}
