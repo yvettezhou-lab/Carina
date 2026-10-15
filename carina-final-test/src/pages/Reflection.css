@@ -22,8 +22,8 @@
 .reflection-header-controls{margin:0 0 18px;padding-top:12px;background:transparent}
 .reflection-header-controls>.hero-head{align-items:center;padding:0 0 10px;margin:0 0 8px;background:transparent;box-shadow:none}
 .reflection-period{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px;min-width:0;overflow:visible}
-.reflection-mode{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));white-space:nowrap;min-width:0;overflow:visible}
-.reflection-period button,.reflection-mode button{min-width:0;margin:0;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.72);color:var(--ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;transition:background .18s ease,color .18s ease,border-color .18s ease}
+.reflection-mode{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;white-space:nowrap;min-width:0;overflow:visible}
+.reflection-period button,.reflection-mode button{min-width:0;margin:0;padding-left:2px;padding-right:2px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.72);color:var(--ink);font-size:clamp(11px,3.4vw,14px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;transition:background .18s ease,color .18s ease,border-color .18s ease}
 /* Reflection chart: restore the missing chart-specific layout and component styles. */
 .reflection-analysis{overflow:hidden}
 
