@@ -87,7 +87,7 @@ export function Reflection() {
       const cutoff = Math.min(Date.now(), new Date(pointYear, pointMonth + 1, 1).getTime());
       const values: Record<string, number> = {};
       currencies.forEach((currency) => { values[currency] = eligibleAccounts.filter((account) => account.currency === currency).reduce((sum, account) => sum + balanceAt(account, cutoff), 0); });
-      return { key: pointYear + '-' + pointMonth, label: new Date(pointYear, pointMonth, 1).toLocaleDateString('en-US', { month: 'short' }), year: pointYear, month: pointMonth, values };
+      return { key: pointYear + '-' + pointMonth, label: netWorthRange === '2y' || netWorthRange === '5y' ? new Date(pointYear, pointMonth, 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) : new Date(pointYear, pointMonth, 1).toLocaleDateString('en-US', { month: 'short' }), year: pointYear, month: pointMonth, values };
     });
     const currentValues: Record<string, number> = {};
     currencies.forEach((currency) => { currentValues[currency] = eligibleAccounts.filter((account) => account.currency === currency).reduce((sum, account) => sum + balanceAt(account, Date.now()), 0); });
