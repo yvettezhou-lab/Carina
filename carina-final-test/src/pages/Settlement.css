@@ -21,13 +21,50 @@
 .settlement-field-grid>.settlement-field{min-width:0}
 .settlement-field{display:flex;min-width:0;flex-direction:column;gap:4px}
 .settlement-field>span{font-size:12px;color:var(--ink-soft)}
-.settlement-field-grid .settlement-field select,
-.settlement-field-grid .settlement-field input[type="date"]{display:block!important;width:100%!important;min-width:0!important;height:42px!important;min-height:42px!important;max-width:100%!important;box-sizing:border-box!important;margin:0!important;padding:6px 8px!important}
-.settlement-field-grid .settlement-field input[type="date"]{-webkit-appearance:none!important;appearance:none!important;inline-size:100%!important;min-inline-size:0!important;max-inline-size:100%!important;overflow:hidden!important;font-size:16px!important;color:var(--ink)!important;color-scheme:light!important;background:rgba(255,252,244,.7)!important;border:1px solid var(--line)!important;border-radius:2px!important;text-align:left!important;-webkit-text-fill-color:var(--ink)!important}
-.settlement-field-grid .settlement-field input[type="date"]::-webkit-date-and-time-value{text-align:left!important;min-height:1.2em!important}
-.settlement-field-grid .settlement-field input[type="date"]::-webkit-calendar-picker-indicator{opacity:.75!important;margin:0!important}
+/* Canonical controls for the active settlement form: account, date and amount. */
+.settlement-section .settlement-field select,
+.settlement-section .settlement-field input:not([type="checkbox"]){
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  height:42px!important;
+  min-height:42px!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding:0 10px!important;
+  border:1px solid var(--line)!important;
+  border-radius:6px!important;
+  background-color:rgba(255,252,244,.78)!important;
+  color:var(--ink)!important;
+  font-family:inherit!important;
+  font-size:16px!important;
+  line-height:normal!important;
+  box-shadow:none!important;
+}
+.settlement-section .settlement-field select{
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  padding-right:34px!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23172235' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;
+  background-position:right 10px center!important;
+  background-size:16px 16px!important;
+}
+.settlement-section .settlement-field input[type="date"]{
+  -webkit-appearance:none!important;
+  appearance:none!important;
+  inline-size:100%!important;
+  min-inline-size:0!important;
+  max-inline-size:100%!important;
+  overflow:hidden!important;
+  color-scheme:light!important;
+  -webkit-text-fill-color:var(--ink)!important;
+  text-align:left!important;
+}
+.settlement-section .settlement-field input[type="date"]::-webkit-date-and-time-value{text-align:left!important;min-height:1.2em!important}
+.settlement-section .settlement-field input[type="date"]::-webkit-calendar-picker-indicator{opacity:.75!important;margin:0!important}
 .settlement-amount-field{margin-top:7px}
-.settlement-amount-field input{display:block;width:100%;min-width:0;box-sizing:border-box}
 .settlement-summary{margin-top:7px;padding:7px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
 .settlement-summary>div{display:flex;justify-content:space-between;gap:16px;font-size:14px}
 .settlement-summary b{font-variant-numeric:tabular-nums}
