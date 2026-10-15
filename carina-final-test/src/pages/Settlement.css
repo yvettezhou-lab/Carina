@@ -68,3 +68,24 @@
 .settlement-history-audit strong{font-size:11px;color:var(--ink)}
 .settlement-history-audit span{color:var(--ink)}
 .settlement-history-audit small{color:var(--ink-soft);overflow-wrap:anywhere}
+
+/* Compact History header for narrow mobile screens */
+.settlement-history{gap:7px}
+.settlement-history-totals{grid-template-columns:repeat(3,minmax(0,1fr));gap:0;padding:9px 7px}
+.settlement-history-totals>div{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:4px;padding:1px 7px;border-bottom:0;border-right:1px solid rgba(0,0,0,.08);font-size:11px;min-width:0}
+.settlement-history-totals>div:last-child{border-right:0}
+.settlement-history-totals span{font-size:11px;line-height:1.35}
+.settlement-history-totals strong{font-size:14px;max-width:100%;overflow-wrap:anywhere}
+.settlement-history-filters{gap:6px;padding:8px}
+.settlement-history-filters .settlement-field{gap:3px}
+.settlement-history-filters .settlement-field>span{font-size:11px}
+.settlement-history-filters select,.settlement-history-filters input{height:35px;padding:4px 6px;font-size:12px}
+.settlement-correction-editor input[type="date"]{color-scheme:light}
+.settlement-history-audit span{overflow-wrap:anywhere}
+@media(max-width:380px){
+ .settlement-history-totals{padding:8px 4px}
+ .settlement-history-totals>div{padding:1px 4px}
+ .settlement-history-totals strong{font-size:12px}
+ .settlement-history-totals span{font-size:10px}
+ .settlement-history-filters{gap:5px;padding:7px}
+}
