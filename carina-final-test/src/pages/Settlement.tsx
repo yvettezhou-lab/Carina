@@ -1,8 +1,8 @@
 import './Settlement.css';
 import { useEffect, useMemo, useState } from 'react';
 import { db } from '@/database/db';
-import type { Account, Person, Settlement as SettlementRecord, Transaction } from '@/models';
-import { getPendingAdvances, settleAdvances } from '@/services/settlements';
+import type { Account, Person, Settlement as SettlementRecord, SettlementHistory, Transaction } from '@/models';
+import { correctSettlementAccount, getPendingAdvances, settleAdvances } from '@/services/settlements';
 
 type HistoryStatus = 'all' | 'pending' | 'settled';
 
@@ -13,6 +13,11 @@ export function Settlement() {
   const [advances, setAdvances] = useState<Transaction[]>([]);
   const [historyRows, setHistoryRows] = useState<Transaction[]>([]);
   const [settlements, setSettlements] = useState<SettlementRecord[]>([]);
+  const [correctionHistory, setCorrectionHistory] = useState<SettlementHistory[]>([]);
+  const [editingSettlementId, setEditingSettlementId] = useState('');
+  const [correctionAccountId, setCorrectionAccountId] = useState('');
+  const [correctionReason, setCorrectionReason] = useState('');
+  const [correctionMessage, setCorrectionMessage] = useState('');
   const [selectedPersonId, setSelectedPersonId] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [accountId, setAccountId] = useState('');
@@ -36,7 +41,7 @@ export function Settlement() {
       db.settlements.toArray(),
     ]);
     setHistoryRows(allTransactions.filter(t => t.kind === 'advance').sort((a, b) => b.dateTime - a.dateTime));
-    setSettlements(allSettlements.sort((a, b) => b.dateTime - a.dateTime));
+    setSettlements(allSettlements.sort((a, b) => b.dateTime - a.dateTime));\n    setCorrectionHistory(allCorrections.sort((a, b) => b.createdAt - a.createdAt));
   };
 
   useEffect(() => {
@@ -90,7 +95,7 @@ export function Settlement() {
   const peopleById = useMemo(() => new Map<string, string>(people.map(p => [p.id, p.name] as const)), [people]);
   const accountsById = useMemo(() => new Map<string, string>(accounts.map(a => [a.id, a.name] as const)), [accounts]);
 
-  const toggle = (id: string) => {
+  const handleCorrectAccount = async (settlementId: string) => {\n    if (!correctionAccountId) return setCorrectionMessage('请选择正确的收款账户');\n    try {\n      const result = await correctSettlementAccount({settlementId,newAccountId:correctionAccountId,reason:correctionReason});\n      if (!result.changed) { setCorrectionMessage('账户没有变化'); return; }\n      await refreshHistory();\n      setEditingSettlementId('');\n      setCorrectionReason('');\n      setCorrectionMessage('账户已更正，历史已保存');\n    } catch (error) {\n      setCorrectionMessage(error instanceof Error ? error.message : '更正失败');\n    }\n  };\n\n  const toggle = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
@@ -203,6 +208,16 @@ export function Settlement() {
                     <div className="settlement-history-meta"><span>{new Date(item.dateTime).toLocaleDateString('zh-CN')}</span><span>{peopleById.get(item.personId || '') || '未指定人物'}</span><span className={item.advanceStatus === 'settled' ? 'history-status settled' : 'history-status pending'}>{item.advanceStatus === 'settled' ? '已结算' : '待收回'}</span></div>
                     <div className="settlement-history-detail"><span>代付账户：{accountsById.get(item.accountId) || '账户已删除'}</span>{settlement && <span>收款账户：{accountsById.get(settlement.accountId) || '账户已删除'}</span>}</div>
                     {settlement && <div className="settlement-history-detail"><span>实际收回：¥{settlement.receivedAmount.toFixed(2)}</span><span>差额：{settlement.difference > 0 ? '+' : ''}¥{settlement.difference.toFixed(2)}</span></div>}
+                    {settlement && <>
+                      <button type="button" className="settlement-history-edit" onClick={() => { setEditingSettlementId(editingSettlementId === settlement.id ? '' : settlement.id); setCorrectionAccountId(settlement.accountId); setCorrectionReason(''); setCorrectionMessage(''); }}>修改收款账户</button>
+                      {editingSettlementId === settlement.id && <div className="settlement-correction-editor">
+                        <label className="settlement-field"><span>正确的收款账户</span><select value={correctionAccountId} onChange={e => setCorrectionAccountId(e.target.value)}><option value="">请选择账户</option>{accounts.filter(a => !a.isArchived).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
+                        <label className="settlement-field"><span>更正原因（可选）</span><input value={correctionReason} onChange={e => setCorrectionReason(e.target.value)} placeholder="例如：收款时选错账户" /></label>
+                        <button type="button" className="primary-button settlement-correction-save" onClick={() => void handleCorrectAccount(settlement.id)}>确认更正</button>
+                        {correctionMessage && <div className="settlement-message">{correctionMessage}</div>}
+                      </div>}
+                      {correctionHistory.filter(h => h.settlementId === settlement.id).map(h => <div className="settlement-history-audit" key={h.id}><strong>账户更正</strong><span>{h.oldAccountName} → {h.newAccountName}</span><small>{new Date(h.createdAt).toLocaleString('zh-CN')}{h.reason ? ` · ${h.reason}` : ''}</small></div>)}
+                    </>}
                   </article>
                 );
               })}
