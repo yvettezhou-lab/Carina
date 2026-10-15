@@ -97,7 +97,21 @@ export function Settlement() {
   const peopleById = useMemo(() => new Map<string, string>(people.map(p => [p.id, p.name] as const)), [people]);
   const accountsById = useMemo(() => new Map<string, string>(accounts.map(a => [a.id, a.name] as const)), [accounts]);
 
-  const handleCorrectAccount = async (settlementId: string) => {\n    if (!correctionAccountId) return setCorrectionMessage('请选择正确的收款账户');\n    try {\n      const result = await correctSettlementAccount({settlementId,newAccountId:correctionAccountId,reason:correctionReason});\n      if (!result.changed) { setCorrectionMessage('账户没有变化'); return; }\n      await refreshHistory();\n      setEditingSettlementId('');\n      setCorrectionReason('');\n      setCorrectionMessage('账户已更正，历史已保存');\n    } catch (error) {\n      setCorrectionMessage(error instanceof Error ? error.message : '更正失败');\n    }\n  };\n\n  const toggle = (id: string) => {
+  const handleCorrectAccount = async (settlementId: string) => {
+    if (!correctionAccountId) return setCorrectionMessage('请选择正确的收款账户');
+    try {
+      const result = await correctSettlementAccount({settlementId,newAccountId:correctionAccountId,reason:correctionReason});
+      if (!result.changed) { setCorrectionMessage('账户没有变化'); return; }
+      await refreshHistory();
+      setEditingSettlementId('');
+      setCorrectionReason('');
+      setCorrectionMessage('账户已更正，历史已保存');
+    } catch (error) {
+      setCorrectionMessage(error instanceof Error ? error.message : '更正失败');
+    }
+  };
+
+  const toggle = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
