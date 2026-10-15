@@ -1,5 +1,5 @@
 import Dexie,{type Table} from 'dexie';
-import type {Account,Category,Person,ItemProfile,Transaction,Transfer,Settlement,SettlementHistory} from '@/models';
+import type {Account,Category,Person,ItemProfile,Transaction,Transfer,Settlement,SettlementHistory,NetWorthBaseline} from '@/models';
 export class CarinaDatabase extends Dexie{
   accounts!:Table<Account,string>;
   categories!:Table<Category,string>;
@@ -9,6 +9,7 @@ export class CarinaDatabase extends Dexie{
   transfers!:Table<Transfer,string>;
   settlements!:Table<Settlement,string>;
   settlementHistory!:Table<SettlementHistory,string>;
+  netWorthBaselines!:Table<NetWorthBaseline,string>;
   constructor(){
     super('carina');
     this.version(1).stores({
@@ -22,6 +23,7 @@ export class CarinaDatabase extends Dexie{
     this.version(2).stores({settlements:'id,personId,dateTime'});
     this.version(3).stores({transactions:'id,accountId,categoryId,personId,itemProfileId,flow,dateTime,syncAccountId'});
     this.version(4).stores({settlementHistory:'id,settlementId,createdAt'});
+    this.version(5).stores({netWorthBaselines:'id'});
   }
 }
 export const db=new CarinaDatabase();
