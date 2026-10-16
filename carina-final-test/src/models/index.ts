@@ -4,3 +4,5 @@ export interface Transaction{id:string;groupId?:string;accountId:string;category
 export interface Settlement{id:string;personId:string;transactionIds:string[];accountId:string;expectedAmount:number;receivedAmount:number;difference:number;differenceCategoryId?:string;dateTime:number;createdAt:number}
 export interface SettlementHistory{id:string;settlementId:string;action:'settlement_corrected';oldAccountId:string;newAccountId:string;oldAccountName:string;newAccountName:string;oldReceivedAmount:number;newReceivedAmount:number;oldDateTime:number;newDateTime:number;oldDifference:number;newDifference:number;reason?:string;createdAt:number;affectedTransactionIds:string[]}
 export interface NetWorthBaseline { id: 'baseline'; date: string; balances: Record<string, number>; updatedAt: number }
+
+export interface BankReconciliation{id:string;accountId:string;periodStart:string;periodEnd:string;actualBalance:number;estimatedInterest:number;actualInterest:number;annualRate:number;delta:number;status:'auto-posted'|'review'|'negative';createdAt:number}
