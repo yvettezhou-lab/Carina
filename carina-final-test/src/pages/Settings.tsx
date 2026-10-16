@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Database, Download, Plus, Upload, Users, Tags, Wallet } from 'lucide-react';
 import { db } from '@/database/db';
 import { uid } from '@/utils/id';
@@ -7,6 +8,7 @@ import { getAccountBalance } from '@/services/balance';
 import type { Account, Category, Person } from '@/models';
 
 export function Settings() {
+ const navigate=useNavigate(); const location=useLocation(); const section=location.pathname.endsWith('/accounts')?'accounts':location.pathname.endsWith('/categories')?'categories':'home';
   const [accounts,setAccounts]=useState<(Account & { balance:number })[]>([]);
   const [categories,setCategories]=useState<Category[]>([]);
   const [people,setPeople]=useState<Person[]>([]);
@@ -161,8 +163,9 @@ async function moveAccount(accountId: string, direction: -1 | 1) {
   }
   async function restore(file:File){ await importBackup(await file.text()); await refresh(); if(fileRef.current) fileRef.current.value=''; alert('Restore complete'); }
 
-  
-    if(accountEditorMode){
+
+ if(section==='home'&&!accountEditorMode)return <section><header className="hero-head inner-head"><div><div className="script-title">Atelier</div><div className="brand-subtitle">YOUR PRIVATE WORKSHOP</div></div></header><div className="settings-intro">Shape the ledger to fit your life.</div><div className="atelier-section"><button type="button" className="atelier-row" onClick={()=>navigate('/settings/accounts')} style={{display:'flex',alignItems:'center',width:'100%',padding:'18px 0',background:'transparent',border:0,borderBottom:'1px solid rgba(120,100,70,.14)',color:'inherit',textAlign:'left'}}><Wallet size={18}/><span style={{flex:1,marginLeft:12}}>Accounts</span><span>›</span></button><button type="button" className="atelier-row" onClick={()=>navigate('/settings/categories')} style={{display:'flex',alignItems:'center',width:'100%',padding:'18px 0',background:'transparent',border:0,borderBottom:'1px solid rgba(120,100,70,.14)',color:'inherit',textAlign:'left'}}><Tags size={18}/><span style={{flex:1,marginLeft:12}}>Categories</span><span>›</span></button></div><div className="atelier-section"><div className="atelier-title"><Users size={17}/><div><span>PEOPLE</span><small>Names that matter to your ledger</small></div></div>{people.map(x=><div className="atelier-row" key={x.id}><span style={{flex:1}}>{x.name}</span><button onClick={()=>editPerson(x)}>Edit</button><button onClick={()=>deletePerson(x)}>Delete</button></div>)}<button className="atelier-add" onClick={addPerson}><Plus size={15}/> Add person</button></div><div className="atelier-section"><div className="atelier-title"><Database size={17}/><div><span>ARCHIVE</span><small>Keep a safe copy of Carina</small></div></div><button className="data-action" onClick={backup}><Download size={15}/> Export backup</button><button className="data-action" onClick={()=>fileRef.current?.click()}><Upload size={15}/> Restore backup</button><input ref={fileRef} type="file" accept="application/json" hidden onChange={e=>{const f=e.target.files?.[0];if(f)restore(f).catch(err=>alert(err.message))}}/></div></section>;
+ if(accountEditorMode){
       return (
         <section>
           <header className="hero-head inner-head">
@@ -365,7 +368,7 @@ return <section>
 
     <div className="settings-intro">Shape the ledger to fit your life.</div>
 
-    <div className="atelier-section">
+    {section==='accounts'&&<><button type="button" onClick={()=>navigate('/settings')} style={{border:0,background:'transparent',color:'inherit',padding:'8px 0 16px'}}>← Settings</button><div className="atelier-section">
       <div className="atelier-title"><Wallet size={17}/><div><span>ACCOUNTS</span><small>Where your money lives</small></div></div>
       {accounts.map(x=>(
               <div
@@ -479,7 +482,8 @@ return <section>
 
             </div>
 
-      <div className="atelier-section">
+      </>}
+      {section==='categories'&&<><button type="button" onClick={()=>navigate('/settings')} style={{border:0,background:'transparent',color:'inherit',padding:'8px 0 16px'}}>← Settings</button><div className="atelier-section"><div className="atelier-title"><Tags size={17}/><div><span>CATEGORIES</span><small>Organize income and expenses</small></div></div>
         {categories.map(x=><div className="atelier-row" key={x.id}><span>{x.name}</span><em>{x.flow==='expense'?'Expense':'Income'}</em></div>)}
       <button className="atelier-add" onClick={addCategory}><Plus size={15}/> Add category</button>
       {categoryEditorOpen && (
@@ -533,56 +537,6 @@ return <section>
       )}
     </div>
 
-    <div className="atelier-section">
-      <div className="atelier-title"><Users size={17}/><div><span>PEOPLE</span><small>Names that matter to your ledger</small></div></div>
-      {people.map(x=>(
-              <div className="atelier-row" key={x.id}>
-                <span style={{flex:1,minWidth:0}}>{x.name}</span>
-                <button
-                  type="button"
-                  onClick={()=>editPerson(x)}
-                  style={{
-                    marginLeft:"16px",
-                    flexShrink:0,
-                    border:0,
-                    background:"transparent",
-                    color:"inherit",
-                    font:"inherit",
-                    fontSize:"12px",
-                    opacity:.58,
-                    cursor:"pointer",
-                    padding:"8px 0"
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={()=>deletePerson(x)}
-                  style={{
-                    marginLeft:"12px",
-                    flexShrink:0,
-                    border:0,
-                    background:"transparent",
-                    color:"inherit",
-                    font:"inherit",
-                    fontSize:"12px",
-                    opacity:.58,
-                    cursor:"pointer",
-                    padding:"8px 0"
-                  }}
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
-      <button className="atelier-add" onClick={addPerson}><Plus size={15}/> Add person</button>
-    </div>
-
-    <div className="atelier-section">
-      <div className="atelier-title"><Database size={17}/><div><span>ARCHIVE</span><small>Keep a safe copy of Carina</small></div></div>
-      <button className="data-action" onClick={backup}><Download size={15}/> Export backup</button>
-      <button className="data-action" onClick={()=>fileRef.current?.click()}><Upload size={15}/> Restore backup</button>
-      <input ref={fileRef} type="file" accept="application/json" hidden onChange={e=>{const f=e.target.files?.[0];if(f)restore(f).catch(err=>alert(err.message))}}/>
-    </div></section>;
+      </>}
+  </section>;
 }
