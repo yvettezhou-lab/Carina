@@ -114,7 +114,7 @@ export function Dashboard() {
 
       <div className="section-heading">
         <div><span className="script-caption">The household ledger</span><h2>Accounts</h2></div>
-        <button className="quiet-link" onClick={() => navigate('/settings')}>Manage <ArrowRight size={14}/></button>
+        <button className="quiet-link" onClick={() => navigate('/reconciliation')}>对账 <ArrowRight size={14}/></button>
       </div>
 
       <div className="account-list">
