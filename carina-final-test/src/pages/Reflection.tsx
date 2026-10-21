@@ -72,11 +72,11 @@ export function Reflection() {
     return () => { alive = false; };
   }, []);
 
-  const data = useMemo(() => buildReflectionData(personalTransactions, categories, personalAccounts, year, month), [personalTransactions, categories, personalAccounts, year, month]);
-  const annualData = useMemo(() => buildReflectionAnnualData(personalTransactions, categories, personalAccounts, year), [personalTransactions, categories, personalAccounts, year]);
   const personalAccounts = useMemo(() => accounts.filter((account) => account.includeInNetWorth !== false), [accounts]);
   const personalAccountIds = useMemo(() => new Set(personalAccounts.map((account) => account.id)), [personalAccounts]);
   const personalTransactions = useMemo(() => transactions.filter((transaction) => personalAccountIds.has(transaction.accountId)), [transactions, personalAccountIds]);
+  const data = useMemo(() => buildReflectionData(personalTransactions, categories, personalAccounts, year, month), [personalTransactions, categories, personalAccounts, year, month]);
+  const annualData = useMemo(() => buildReflectionAnnualData(personalTransactions, categories, personalAccounts, year), [personalTransactions, categories, personalAccounts, year]);
   const activeData = period === 'year' ? annualData : data;
 
   const totalSummary = useMemo(() => {
