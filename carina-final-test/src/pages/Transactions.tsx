@@ -108,7 +108,7 @@ export function Transactions() {
       transactionIds: []
     }));
 
-    setAccounts(accountRows);
+    setAccounts([...accountRows].sort((a, b) => a.sortOrder - b.sortOrder));
     setCategories(categoryRows);
     setPeople(personRows);
     setItems([...normal, ...transferRows].sort((a, b) => b.dateTime - a.dateTime));
