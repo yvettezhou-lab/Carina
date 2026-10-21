@@ -7,10 +7,10 @@ type Props =
 
 function Donut({ data, selectedId, onSelect, onToggleChart }: { data: ReflectionBreakdown[]; selectedId?: string; onSelect: (id: string) => void; onToggleChart: () => void }) {
   const [showAll, setShowAll] = useState(false);
-  const top = showAll ? data : data.slice(0, 6);
-  const total = top.reduce((sum, item) => sum + item.amount, 0);
+  const visibleData = showAll ? data : data.slice(0, 5);
+  const total = visibleData.reduce((sum, item) => sum + item.amount, 0);
   let cursor = 0;
-  const segments = top.map((item, index) => {
+  const segments = visibleData.map((item, index) => {
     const start = cursor;
     cursor += total ? item.amount / total : 0;
     return { ...item, start, end: cursor, index };
@@ -30,7 +30,7 @@ function Donut({ data, selectedId, onSelect, onToggleChart }: { data: Reflection
       <div className="reflection-breakdown-list">
         {data.length === 0 ? (
           <div className="empty"><span className="empty-script">A quiet month</span><p>No spending recorded yet.</p></div>
-        ) : (showAll ? data : data.slice(0, 8)).map((item) => (
+        ) : visibleData.map((item) => (
           <button className={`reflection-breakdown-row ${selectedId === item.id ? 'selected' : ''}`} key={item.id} onClick={() => onSelect(item.id)}>
             <span><i className="reflection-swatch" />{item.name}</span>
             <strong>¥{item.amount.toFixed(2)}</strong>
@@ -44,7 +44,7 @@ function Donut({ data, selectedId, onSelect, onToggleChart }: { data: Reflection
 
 function BarBreakdown({ data, selectedId, onSelect, onToggleChart }: { data: ReflectionBreakdown[]; selectedId?: string; onSelect: (id: string) => void; onToggleChart: () => void }) {
   const [showAll, setShowAll] = useState(false);
-  const top = showAll ? data : data.slice(0, 8);
+  const top = showAll ? data : data.slice(0, 5);
   const max = Math.max(1, ...top.map((item) => item.amount));
   return (
     <div className="reflection-bar-chart" role="button" tabIndex={0}
