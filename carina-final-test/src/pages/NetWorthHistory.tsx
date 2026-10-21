@@ -102,36 +102,35 @@ export function NetWorthHistory() {
 
   const data = useMemo(() => {
     const selectedCurrency = currency && currencies.includes(currency) ? currency : (currencies.includes('CNY') ? 'CNY' : currencies[0] || '');
-    if (!baseline) return { points: [], currentValues: liveCurrentValues, selectedCurrency, hasBaseline: false };
-    const start = new Date(baseline.date + 'T00:00:00');
+    const baselineStart = baseline ? new Date(baseline.date + 'T00:00:00') : null;
+    const activityTimes = [...transactions.map((t) => t.dateTime), ...transfers.map((t) => t.dateTime)].filter(Number.isFinite);
+    const firstActivity = activityTimes.length ? Math.min(...activityTimes) : null;
+    const startDate = baselineStart ?? (firstActivity === null ? new Date(now.getFullYear(), now.getMonth(), 1) : new Date(firstActivity));
     const count = range === '6m' ? 6 : range === '1y' ? 12 : range === '2y' ? 24 : 60;
-    const monthStart = new Date(start.getFullYear(), start.getMonth(), 1);
+    const firstMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
     const lastMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const allMonths: { year: number; month: number }[] = [];
-    for (let cursor = new Date(monthStart); cursor <= lastMonth; cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)) {
-      allMonths.push({ year: cursor.getFullYear(), month: cursor.getMonth() });
-    }
+    for (let cursor = new Date(firstMonth); cursor <= lastMonth; cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)) allMonths.push({ year: cursor.getFullYear(), month: cursor.getMonth() });
     const months = allMonths.slice(-count);
     const balanceAt = (account: Account, cutoff: number) => {
-      const base = baseline.balances[account.id] ?? 0;
-      const ownDelta = transactions.filter((t) => t.accountId === account.id && t.dateTime >= start.getTime() && t.dateTime < cutoff && t.kind !== 'settlement_difference').reduce((sum, t) => sum + (t.flow === 'income' ? t.amount : -t.amount), 0);
-      const syncedDelta = transactions.filter((t) => t.syncAccountId === account.id && t.dateTime >= start.getTime() && t.dateTime < cutoff && t.kind !== 'settlement_difference').reduce((sum, t) => sum + (t.flow === 'income' ? t.amount : -t.amount), 0);
-      const outgoing = transfers.filter((t) => t.fromAccountId === account.id && t.dateTime >= start.getTime() && t.dateTime < cutoff).reduce((sum, t) => sum + t.amount, 0);
-      const incoming = transfers.filter((t) => t.toAccountId === account.id && t.dateTime >= start.getTime() && t.dateTime < cutoff).reduce((sum, t) => sum + t.amount, 0);
+      const base = baseline ? (baseline.balances[account.id] ?? 0) : account.openingBalance;
+      const lowerBound = baselineStart?.getTime() ?? Number.NEGATIVE_INFINITY;
+      const ownDelta = transactions.filter((t) => t.accountId === account.id && t.dateTime >= lowerBound && t.dateTime < cutoff && t.kind !== 'settlement_difference').reduce((sum, t) => sum + (t.flow === 'income' ? t.amount : -t.amount), 0);
+      const syncedDelta = transactions.filter((t) => t.syncAccountId === account.id && t.dateTime >= lowerBound && t.dateTime < cutoff && t.kind !== 'settlement_difference').reduce((sum, t) => sum + (t.flow === 'income' ? t.amount : -t.amount), 0);
+      const outgoing = transfers.filter((t) => t.fromAccountId === account.id && t.dateTime >= lowerBound && t.dateTime < cutoff).reduce((sum, t) => sum + t.amount, 0);
+      const incoming = transfers.filter((t) => t.toAccountId === account.id && t.dateTime >= lowerBound && t.dateTime < cutoff).reduce((sum, t) => sum + t.amount, 0);
       return base + ownDelta + syncedDelta - outgoing + incoming;
     };
     const points = months.map(({ year, month }) => {
       const cutoff = Math.min(Date.now(), new Date(year, month + 1, 1).getTime());
-      const pointTime = new Date(year, month, 1).getTime() < start.getTime() ? start.getTime() : cutoff;
       const values: Record<string, number> = {};
-      currencies.forEach((code) => { values[code] = eligible.filter((account) => account.currency === code).reduce((sum, account) => sum + balanceAt(account, pointTime), 0); });
+      currencies.forEach((code) => { values[code] = eligible.filter((account) => account.currency === code).reduce((sum, account) => sum + balanceAt(account, cutoff), 0); });
       return { key: year + '-' + month, label: range === '2y' || range === '5y' ? new Date(year, month, 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) : new Date(year, month, 1).toLocaleDateString('en-US', { month: 'short' }), year, month, values };
     });
     const currentValues: Record<string, number> = {};
-    currencies.forEach((code) => { currentValues[code] = eligible.filter((account) => account.currency === code).reduce((sum, account) => sum + balanceAt(account, Date.now()), 0); });
-    return { points, currentValues, selectedCurrency, hasBaseline: true };
-  }, [accounts, transactions, transfers, baseline, range, currency, currencies, liveCurrentValues]);
-
+    currencies.forEach((code) => { currentValues[code] = eligible.filter((account) => account.currency === code).reduce((sum, account) => sum + balanceAt(account, Date.now() + 1), 0); });
+    return { points, currentValues, selectedCurrency, hasBaseline: Boolean(baseline), hasHistory: points.length > 0 };
+  }, [accounts, transactions, transfers, baseline, range, currency, currencies, liveCurrentValues, eligible]);
   const format = (value: number) => value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
@@ -156,13 +155,7 @@ export function NetWorthHistory() {
           <span>Current net worth · {data.selectedCurrency || '—'}</span>
           <strong>{data.selectedCurrency ? format(data.currentValues[data.selectedCurrency] ?? 0) : '—'}</strong>
         </div>
-        {!baseline ? (
-          <div className="networth-baseline-prompt">
-            <h3>Set your starting point</h3>
-            <p>Choose a date when you can confirm the balance of each account. Carina will track changes from that point forward and will not invent earlier history.</p>
-            <button type="button" onClick={() => setShowBaselineEditor(true)}>Set baseline</button>
-          </div>
-        ) : (
+        {baseline && (
           <div className="networth-baseline-status">
             <span>Tracking since <strong>{baseline.date}</strong></span>
             <button type="button" onClick={() => setShowBaselineEditor((v) => !v)}>{showBaselineEditor ? 'Cancel' : 'Edit baseline'}</button>
@@ -215,8 +208,8 @@ export function NetWorthHistory() {
               })}
             </div>
           </>
-        ) : <p className="networth-empty">{baseline ? 'No months available in this range.' : 'Set a baseline to start meaningful net worth tracking.'}</p>}
-        <p className="networth-note">Balances are shown separately by currency; currencies are not added together or converted. Only balances entered for the baseline date and transactions/transfers after that date are used.</p>
+        ) : <p className="networth-empty">{data.points.length ? 'No history available in this range.' : 'No account or transaction history available yet.'}</p>}
+        <p className="networth-note">Balances are shown separately by currency; currencies are not added together or converted. Without a manual baseline, history is reconstructed from opening balances and recorded transactions/transfers, starting with the earliest available activity. With a baseline, only balances entered for that date and later transactions/transfers are used.</p>
       </div>
     </section>
   );
