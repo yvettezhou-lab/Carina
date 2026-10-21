@@ -68,3 +68,23 @@
 .reconciliation-panel textarea{border-radius:4px!important;background:rgba(255,255,255,.5)!important;font:inherit;font-size:13px}
 .reconciliation-panel button:not(.networth-back){border-radius:4px}
 @media(max-width:430px){.reconciliation-heading h2{font-size:29px}.reconciliation-account-title strong:first-child{font-size:17px}.reconciliation-account-title strong:last-child{font-size:16px}.reconciliation-estimate{grid-template-columns:auto 1fr;gap:5px 10px}.reconciliation-estimate strong{font-size:14px}.reconciliation-mode-option{font-size:12px;padding:9px 6px}}
+
+/* Compact mobile reconciliation form; keep the FAB clear of the primary action. */
+.reconciliation-panel{gap:13px;padding:18px 16px 20px}
+.reconciliation-heading{padding-bottom:10px}
+.reconciliation-heading .panel-kicker{margin-bottom:4px}
+.reconciliation-heading h2{font-size:28px}
+.reconciliation-account-picker{gap:5px}
+.reconciliation-account-picker select{padding:10px 12px;font-size:14px}
+.reconciliation-account{padding:12px 0 14px}
+.reconciliation-account-title strong:first-child{font-size:17px}
+.reconciliation-account-title strong:last-child{font-size:16px}
+.reconciliation-field{gap:5px;margin-top:11px;font-size:12px}
+.reconciliation-field input{padding:10px 12px;font-size:15px}
+.reconciliation-estimate{margin-top:11px;padding:10px 11px}
+.reconciliation-mode-options{margin-top:10px;gap:7px}
+.reconciliation-mode-option{min-height:40px;padding:8px 6px}
+.reconciliation-confirm{min-height:44px;margin-top:8px;color:#fff!important;background:var(--ink)!important;border-color:var(--ink)!important;font-size:14px;position:relative;z-index:1}
+.reconciliation-page .fab{right:16px;bottom:calc(88px + env(safe-area-inset-bottom));left:auto;transform:none}
+.reconciliation-records-title{font-size:18px}
+@media(max-width:520px){.reconciliation-page .networth-page-header{margin-bottom:18px}.reconciliation-page .script-title{font-size:34px}.reconciliation-panel{padding:16px 14px 18px}.reconciliation-estimate{font-size:11px}}
