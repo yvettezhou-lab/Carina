@@ -14,7 +14,7 @@ type NetWorthRange = '6m' | '1y' | '2y' | '5y';
 function collapseForDrillDown(transactions: Transaction[]): Transaction[] {
   const grouped = new Map<string, Transaction[]>();
 
-  personalTransactions.forEach((transaction) => {
+  transactions.forEach((transaction) => {
     let key = `single:${transaction.id}`;
     if (transaction.groupId) {
       key = `group:${transaction.groupId}`;
@@ -56,7 +56,7 @@ export function Reflection() {
   const [selectedId, setSelectedId] = useState<string>();
   const [chartType, setChartType] = useState<'donut' | 'bar'>('donut');
   const [showAllDrillDown, setShowAllDrillDown] = useState(false);
-  const [summaryFlow, setSummaryFlow] = useState<'income' | 'expense' | undefined>();
+  const [summaryFlow, setSummaryFlow] = useState<'income' | 'expense' | 'advances' | undefined>();
   const [summaryScope, setSummaryScope] = useState<'total' | 'personal'>('personal');
 
   useEffect(() => {
@@ -83,8 +83,9 @@ export function Reflection() {
     const start = period === 'year' ? new Date(year, 0, 1).getTime() : new Date(year, month, 1).getTime();
     const end = period === 'year' ? new Date(year + 1, 0, 1).getTime() : new Date(year, month + 1, 1).getTime();
     const rows = transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
-    const income = rows.filter((t) => t.flow === 'income').reduce((sum, t) => sum + t.amount, 0);
-    const expense = rows.filter((t) => t.flow === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const isAdvanceRelated = (t: Transaction) => t.kind === 'advance' || t.kind === 'reimbursement' || t.kind === 'settlement_difference' || Boolean(t.settlementId);
+    const income = rows.filter((t) => t.flow === 'income' && !isAdvanceRelated(t)).reduce((sum, t) => sum + t.amount, 0);
+    const expense = rows.filter((t) => t.flow === 'expense' && !isAdvanceRelated(t)).reduce((sum, t) => sum + t.amount, 0);
     const advances = rows.filter((t) => t.flow === 'expense' && t.kind === 'advance').reduce((sum, t) => sum + t.amount, 0);
     return { income, expense, advances, netFlow: income - expense };
   }, [transactions, period, year, month]);
@@ -96,9 +97,12 @@ export function Reflection() {
     const sourceTransactions = summaryScope === 'total' ? transactions : personalTransactions;
     return sortTransactionsNewestFirst(collapseForDrillDown(sourceTransactions.filter((t) => {
       const date = new Date(t.dateTime);
-      const included = summaryScope === 'total'
-        ? (summaryFlow === 'income' ? t.flow === 'income' : t.flow === 'expense')
-        : (summaryFlow === 'income' ? t.flow === 'income' && t.kind !== 'reimbursement' : t.flow === 'expense' && t.kind !== 'advance');
+      const isAdvanceRelated = t.kind === 'advance' || t.kind === 'reimbursement' || t.kind === 'settlement_difference' || Boolean(t.settlementId);
+      const included = summaryFlow === 'advances'
+        ? summaryScope === 'total' && t.flow === 'expense' && t.kind === 'advance'
+        : summaryScope === 'total'
+          ? (summaryFlow === 'income' ? t.flow === 'income' && !isAdvanceRelated : t.flow === 'expense' && !isAdvanceRelated)
+          : (summaryFlow === 'income' ? t.flow === 'income' && !isAdvanceRelated : t.flow === 'expense' && !isAdvanceRelated);
       return included && date >= start && date < end;
     })));
   }, [transactions, personalTransactions, summaryFlow, summaryScope, period, year, month]);
@@ -223,7 +227,7 @@ export function Reflection() {
           <strong>Total<br/><small>总流水</small></strong>
           <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('income'); }}><span>INCOME</span><b className="positive">¥{totalSummary.income.toFixed(2)}</b></button>
           <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('expense'); }}><span>EXPENSE</span><b>¥{totalSummary.expense.toFixed(2)}</b></button>
-          <div><span>ADVANCES</span><b>¥{totalSummary.advances.toFixed(2)}</b></div>
+          <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('advances'); }}><span>ADVANCES</span><b>¥{totalSummary.advances.toFixed(2)}</b></button>
         </div>
         <div className="reflection-summary-table-row">
           <strong>Personal<br/><small>净资产口径</small></strong>
@@ -235,10 +239,10 @@ export function Reflection() {
 
       {summaryFlow && (
         <section className="paper-panel reflection-drilldown">
-          <div className="reflection-drilldown-head"><div><span className="panel-kicker">{summaryFlow === 'income' ? 'INCOME DETAILS' : 'EXPENSE DETAILS'}</span><strong>{summaryFlow === 'income' ? 'Income details' : 'Expense details'}</strong></div><span>{summaryTransactions.length} records</span></div>
+          <div className="reflection-drilldown-head"><div><span className="panel-kicker">{summaryFlow === 'income' ? 'INCOME DETAILS' : summaryFlow === 'advances' ? 'ADVANCES HISTORY' : 'EXPENSE DETAILS'}</span><strong>{summaryFlow === 'income' ? 'Income details' : summaryFlow === 'advances' ? 'Advances history' : 'Expense details'}</strong></div><span>{summaryTransactions.length} records</span></div>
           {summaryTransactions.map((transaction) => (
             <div className="reflection-transaction" key={transaction.id}>
-              <span><strong>{transaction.description || (summaryFlow === 'income' ? 'Income' : 'Expense')}</strong><small>{new Date(transaction.dateTime).toLocaleDateString('zh-CN')} · {accounts.find((account) => account.id === transaction.accountId)?.name ?? 'Unknown account'}</small></span>
+              <span><strong>{transaction.description || (summaryFlow === 'income' ? 'Income' : 'Expense')}</strong><small>{new Date(transaction.dateTime).toLocaleDateString('zh-CN')} · {accounts.find((account) => account.id === transaction.accountId)?.name ?? 'Unknown account'}{summaryFlow === 'advances' ? ` · ${transaction.advanceStatus === 'settled' ? '已结算' : '待结算'}` : ''}</small></span>
               <b className={summaryFlow === 'income' ? 'positive' : ''}>{summaryFlow === 'income' ? '+' : '−'}¥{transaction.amount.toFixed(2)}</b>
             </div>
           ))}
