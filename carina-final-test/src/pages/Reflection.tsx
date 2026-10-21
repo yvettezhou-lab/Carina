@@ -77,7 +77,7 @@ export function Reflection() {
     const counts = new Map<string, number>();
     transactions.forEach((transaction) => {
       const date = new Date(transaction.dateTime);
-      if (accounts.find((account) => account.id === transaction.accountId)?.includeInNetWorth !== false && transaction.flow === 'expense' && transaction.kind !== 'advance' && date >= start && date < end) {
+      if (transaction.flow === 'expense' && transaction.kind !== 'advance' && date >= start && date < end) {
         const id = transaction.personId || '__none__';
         totals.set(id, (totals.get(id) || 0) + transaction.amount);
         counts.set(id, (counts.get(id) || 0) + 1);
@@ -98,7 +98,7 @@ export function Reflection() {
 
   const selectedTransactions = useMemo((): Transaction[] => {
     if (!selectedId) return [];
-    if (mode === 'trend') return collapseForDrillDown(filterReflectionTrendTransactions(transactions, selectedId, accounts));
+    if (mode === 'trend') return collapseForDrillDown(filterReflectionTrendTransactions(transactions, selectedId));
     if (mode === 'person') {
       const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
       const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
@@ -111,13 +111,13 @@ export function Reflection() {
     }
     if (mode === 'category') {
       const rows = period === 'year'
-        ? filterReflectionAnnualTransactions(transactions, year, 'category', selectedId, accounts)
-        : filterReflectionTransactions(transactions, year, month, 'category', selectedId, accounts);
+        ? filterReflectionAnnualTransactions(transactions, year, 'category', selectedId)
+        : filterReflectionTransactions(transactions, year, month, 'category', selectedId);
       return collapseForDrillDown(rows);
     }
     const rows = period === 'year'
-      ? filterReflectionAnnualTransactions(transactions, year, 'account', selectedId, accounts)
-      : filterReflectionTransactions(transactions, year, month, 'account', selectedId, accounts);
+      ? filterReflectionAnnualTransactions(transactions, year, 'account', selectedId)
+      : filterReflectionTransactions(transactions, year, month, 'account', selectedId);
     return collapseForDrillDown(rows);
   }, [transactions, accounts, year, month, period, mode, selectedId]);
 
