@@ -68,14 +68,10 @@ function breakdown(
   names: Map<string, string>,
   allIds: string[],
 ): ReflectionBreakdown[] {
-  // Account breakdown represents actual money charged to each payment account.
-  // Include advances here because they still affect the account's running balance.
-  // Category/overall personal expense totals continue to exclude advances.
-  const expenses = transactions.filter((transaction) =>
-    key === 'accountId'
-      ? transaction.flow === 'expense'
-      : isCountedExpense(transaction),
-  );
+  // Reflection is a personal spending report: exclude advances (代付) for both
+  // account and category breakdowns. Account balances remain independent and
+  // continue to include these transactions for credit-card debt tracking.
+  const expenses = transactions.filter(isCountedExpense);
   const totals = new Map<string, { amount: number; count: number }>();
 
   for (const transaction of expenses) {
@@ -173,9 +169,7 @@ export function filterReflectionTransactions(
   mode: 'category' | 'account',
   id: string,
 ) {
-  const current = monthTransactions(transactions, year, month).filter((t) =>
-    mode === 'account' ? t.flow === 'expense' : isCountedExpense(t),
-  );
+  const current = monthTransactions(transactions, year, month).filter(isCountedExpense);
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
@@ -185,9 +179,7 @@ export function filterReflectionAnnualTransactions(
   mode: 'category' | 'account',
   id: string,
 ) {
-  const current = yearTransactions(transactions, year).filter((t) =>
-    mode === 'account' ? t.flow === 'expense' : isCountedExpense(t),
-  );
+  const current = yearTransactions(transactions, year).filter(isCountedExpense);
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
