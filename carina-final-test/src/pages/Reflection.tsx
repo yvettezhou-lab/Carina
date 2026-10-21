@@ -74,11 +74,32 @@ export function Reflection() {
 
   const personalAccounts = useMemo(() => accounts.filter((account) => account.includeInNetWorth !== false), [accounts]);
   const personalAccountIds = useMemo(() => new Set(personalAccounts.map((account) => account.id)), [personalAccounts]);
-  const personalTransactions = useMemo(() => transactions.filter((transaction) => {
-    const isPositiveSettlementDifference = transaction.flow === 'income' && transaction.kind === 'normal' && transaction.description === '代付多收差额';
-    const isExcludedAdvanceActivity = transaction.kind === 'advance' || transaction.kind === 'reimbursement' || transaction.kind === 'settlement_difference' || (Boolean(transaction.settlementId) && !isPositiveSettlementDifference);
-    return personalAccountIds.has(transaction.accountId) && !isExcludedAdvanceActivity;
-  }), [transactions, personalAccountIds]);
+  const personalTransactions = useMemo(() => {
+    const advancesBySettlement = new Map<string, Transaction[]>();
+    transactions.filter((transaction) => transaction.kind === 'advance' && transaction.settlementId).forEach((transaction) => {
+      const rows = advancesBySettlement.get(transaction.settlementId!) ?? [];
+      rows.push(transaction);
+      advancesBySettlement.set(transaction.settlementId!, rows);
+    });
+
+    return transactions.flatMap((transaction) => {
+      const isPositiveSettlementDifference = transaction.flow === 'income' && transaction.kind === 'normal' && transaction.description === '代付多收差额';
+      if (!personalAccountIds.has(transaction.accountId)) return [];
+      if (transaction.kind === 'reimbursement') {
+        if (!transaction.settlementId) return [];
+        const sourceAdvances = advancesBySettlement.get(transaction.settlementId) ?? [];
+        const totalPrincipal = sourceAdvances.reduce((sum, advance) => sum + advance.amount, 0);
+        if (totalPrincipal <= 0) return [];
+        const principalPaidFromExcludedAccounts = sourceAdvances
+          .filter((advance) => !personalAccountIds.has(advance.accountId))
+          .reduce((sum, advance) => sum + advance.amount, 0);
+        const eligibleAmount = Math.round(transaction.amount * principalPaidFromExcludedAccounts / totalPrincipal * 100) / 100;
+        return eligibleAmount > 0 ? [{ ...transaction, id: `${transaction.id}:net-worth-inflow`, amount: eligibleAmount, kind: 'normal' as const, settlementId: undefined, description: '代付收回本金（净资产流入）' }] : [];
+      }
+      const isExcludedAdvanceActivity = transaction.kind === 'advance' || transaction.kind === 'settlement_difference' || (Boolean(transaction.settlementId) && !isPositiveSettlementDifference);
+      return isExcludedAdvanceActivity ? [] : [transaction];
+    });
+  }, [transactions, personalAccountIds]);
   const data = useMemo(() => buildReflectionData(personalTransactions, categories, personalAccounts, year, month), [personalTransactions, categories, personalAccounts, year, month]);
   const annualData = useMemo(() => buildReflectionAnnualData(personalTransactions, categories, personalAccounts, year), [personalTransactions, categories, personalAccounts, year]);
   const activeData = period === 'year' ? annualData : data;
