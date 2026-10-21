@@ -268,7 +268,7 @@ export function Reflection() {
             {mode === 'trend' ? (
               <div className="reflection-drilldown-head">
                 <div><span className="panel-kicker">DRILL DOWN</span><strong>{selectedName}</strong></div>
-                <span><b className="positive">+¥{Math.abs(selectedTransactions.filter((t) => t.flow === 'income' && t.kind !== 'reimbursement').reduce((sum, t) => sum + t.amount, 0)).toFixed(2)}</b>{' '}<b>−¥{selectedTransactions.filter((t) => t.flow === 'expense').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}</b></span>
+                <span><b className="positive">+¥{Math.abs(selectedTransactions.filter((t) => t.flow === 'income' && t.kind !== 'reimbursement').reduce((sum, t) => sum + t.amount, 0)).toFixed(2)}</b>{' '}<b>−¥{selectedTransactions.filter((t) => t.flow === 'expense' && t.kind !== 'advance').reduce((sum, t) => sum + t.amount, 0).toFixed(2)}</b></span>
               </div>
             ) : (
               <div className="reflection-drilldown-head"><div><span className="panel-kicker">DRILL DOWN</span><strong>{selectedName}</strong></div><span>¥{selectedTransactions.reduce((sum, t) => sum + t.amount, 0).toFixed(2)}</span></div>
