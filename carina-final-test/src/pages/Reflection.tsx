@@ -88,8 +88,7 @@ export function Reflection() {
       .map((person) => {
         const amount = totals.get(person.id) || 0;
         return { id: person.id, name: person.name, amount, share: total ? amount / total : 0, transactionCount: counts.get(person.id) || 0 };
-      })
-      .filter((item) => item.amount > 0);
+      });
     const noPersonAmount = totals.get('__none__') || 0;
     if (noPersonAmount > 0) result.push({ id: '__none__', name: 'No person', amount: noPersonAmount, share: total ? noPersonAmount / total : 0, transactionCount: counts.get('__none__') || 0 });
     return result.sort((a, b) => b.amount - a.amount);
