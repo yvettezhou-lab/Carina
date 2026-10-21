@@ -82,7 +82,8 @@ export function Reflection() {
     const rows = transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
     const income = rows.filter((t) => t.flow === 'income').reduce((sum, t) => sum + t.amount, 0);
     const expense = rows.filter((t) => t.flow === 'expense').reduce((sum, t) => sum + t.amount, 0);
-    return { income, expense, netFlow: income - expense };
+    const advances = rows.filter((t) => t.flow === 'expense' && t.kind === 'advance').reduce((sum, t) => sum + t.amount, 0);
+    return { income, expense, advances, netFlow: income - expense };
   }, [transactions, period, year, month]);
 
   const summaryTransactions = useMemo(() => {
@@ -218,7 +219,7 @@ export function Reflection() {
           <strong>Total<br/><small>总流水</small></strong>
           <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('income'); }}><span>INCOME</span><b className="positive">¥{totalSummary.income.toFixed(2)}</b></button>
           <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('expense'); }}><span>EXPENSE</span><b>¥{totalSummary.expense.toFixed(2)}</b></button>
-          <div><span>ADVANCES</span><b className={totalSummary.netFlow >= 0 ? 'positive' : 'negative'}>{totalSummary.netFlow >= 0 ? '+' : '−'}¥{Math.abs(totalSummary.netFlow).toFixed(2)}</b></div>
+          <div><span>ADVANCES</span><b>¥{totalSummary.advances.toFixed(2)}</b></div>
         </div>
         <div className="reflection-summary-table-row">
           <strong>Personal<br/><small>净资产口径</small></strong>
