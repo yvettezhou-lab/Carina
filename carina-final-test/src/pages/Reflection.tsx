@@ -122,7 +122,7 @@ export function Reflection() {
     const rows = period === 'year'
       ? filterReflectionAnnualTransactions(transactions, year, 'account', selectedId)
       : filterReflectionTransactions(transactions, year, month, 'account', selectedId);
-    return collapseForDrillDown(rows);
+    return sortTransactionsNewestFirst(collapseForDrillDown(rows));
   }, [transactions, accounts, year, month, period, mode, selectedId]);
 
   function shift(delta: number) {
