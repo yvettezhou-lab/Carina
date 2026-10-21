@@ -130,8 +130,8 @@ export function buildReflectionData(
     return {
       key: `${d.getFullYear()}-${d.getMonth()}`,
       label: d.toLocaleDateString('en-US', { month: 'short' }),
-      income: rows.filter((t) => isCountedIncome(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
-      expense: rows.filter((t) => isCountedExpense(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
+      income: rows.filter((t) => isCountedIncome(t)).reduce((sum, t) => sum + t.amount, 0),
+      expense: rows.filter((t) => isCountedExpense(t)).reduce((sum, t) => sum + t.amount, 0),
     };
   });
 
