@@ -332,3 +332,9 @@
 .reflection-trend-all button{display:grid;grid-template-columns:.55fr 1fr 1fr;gap:8px;width:100%;padding:10px 0;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:11px;text-align:left;font-variant-numeric:tabular-nums}
 .reflection-trend-all button span:not(:first-child){text-align:right}
 
+
+/* Two accounting views; preserve the existing three-cell summary treatment. */
+.reflection-summary-pair{display:flex;flex-direction:column;gap:0;margin-bottom:22px}
+.reflection-summary-pair .reflection-summary{margin-bottom:0}
+.reflection-summary-label{padding:5px 0;color:var(--muted);font-size:10px;letter-spacing:.08em}
+.reflection-summary-pair .reflection-summary-label:not(:first-child){margin-top:7px}
