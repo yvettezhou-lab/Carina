@@ -18,6 +18,7 @@ export function Settings() {
     const [editingAccount,setEditingAccount]=useState<(Account & { balance:number }) | null>(null);
     const [editName,setEditName]=useState('');
     const [editIncludeInNetWorth,setEditIncludeInNetWorth]=useState(true);
+    const [editReconcileEnabled,setEditReconcileEnabled]=useState(true);
   const [categoryEditorOpen,setCategoryEditorOpen]=useState(false);
   const [categoryFlow,setCategoryFlow]=useState<'expense'|'income'>('expense');
   const [categoryName,setCategoryName]=useState('');
@@ -35,6 +36,7 @@ export function Settings() {
     setEditName('');
     setEditOpeningBalance('0');
     setEditIncludeInNetWorth(true);
+    setEditReconcileEnabled(true);
     setAccountEditorMode('add');
 }
 
@@ -43,6 +45,7 @@ function openEditAccount(account: Account & { balance:number }){
     setEditName(account.name);
     setEditOpeningBalance(String(account.openingBalance ?? 0));
     setEditIncludeInNetWorth(account.includeInNetWorth);
+    setEditReconcileEnabled(account.reconcileEnabled !== false);
     setAccountEditorMode('edit');
 }
 
@@ -65,6 +68,7 @@ async function saveAccountEditor(){
             name,
             currency:'CNY',
             kind:'other',
+            reconcileEnabled:editReconcileEnabled,
             openingBalance,
             includeInNetWorth:editIncludeInNetWorth,
             sortOrder:Date.now(),
@@ -76,7 +80,8 @@ async function saveAccountEditor(){
         await db.accounts.update(editingAccount.id,{
             name,
             openingBalance,
-            includeInNetWorth:editIncludeInNetWorth
+            includeInNetWorth:editIncludeInNetWorth,
+            reconcileEnabled:editReconcileEnabled
         });
     }
 
@@ -285,6 +290,11 @@ async function moveAccount(accountId: string, direction: -1 | 1) {
   {editIncludeInNetWorth ? "✓" : ""}
 </span>
                 <span>Include in net assets</span>
+              </label>
+
+              <label style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"28px",cursor:"pointer",fontSize:"13px"}}>
+                <input type="checkbox" checked={editReconcileEnabled} onChange={e=>setEditReconcileEnabled(e.target.checked)} style={{width:18,height:18,accentColor:"#78613f"}} />
+                <span>需要对账</span>
               </label>
 
               <div style={{
