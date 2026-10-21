@@ -54,26 +54,21 @@ function yearTransactions(transactions: Transaction[], year: number) {
   return transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
 }
 
-function isOwnAccount(t: Transaction, accounts: Account[]) {
-  return accounts.find((account) => account.id === t.accountId)?.includeInNetWorth !== false;
+function isCountedIncome(t: Transaction) {
+  return t.flow === 'income' && t.kind !== 'reimbursement';
 }
 
-function isCountedIncome(t: Transaction, accounts: Account[]) {
-  return isOwnAccount(t, accounts) && t.flow === 'income' && t.kind !== 'reimbursement';
-}
-
-function isCountedExpense(t: Transaction, accounts: Account[]) {
-  return isOwnAccount(t, accounts) && t.flow === 'expense' && t.kind !== 'advance';
+function isCountedExpense(t: Transaction) {
+  return t.flow === 'expense' && t.kind !== 'advance';
 }
 
 function breakdown(
   transactions: Transaction[],
   key: 'categoryId' | 'accountId',
   names: Map<string, string>,
-  accounts: Account[],
   allIds: string[],
 ): ReflectionBreakdown[] {
-  const expenses = transactions.filter((t) => isCountedExpense(t, accounts));
+  const expenses = transactions.filter(isCountedExpense);
   const totals = new Map<string, { amount: number; count: number }>();
 
   for (const transaction of expenses) {
@@ -101,10 +96,10 @@ function breakdown(
 
 function summarize(transactions: Transaction[], categories: Category[], accounts: Account[]) {
   const income = transactions
-    .filter((t) => isCountedIncome(t, accounts))
+    .filter(isCountedIncome)
     .reduce((sum, t) => sum + t.amount, 0);
   const expense = transactions
-    .filter((t) => isCountedExpense(t, accounts))
+    .filter(isCountedExpense)
     .reduce((sum, t) => sum + t.amount, 0);
 
   const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
@@ -114,8 +109,8 @@ function summarize(transactions: Transaction[], categories: Category[], accounts
     income,
     expense,
     netFlow: income - expense,
-    category: breakdown(transactions, 'categoryId', categoryNames, accounts, categories.filter((item) => !item.isArchived).map((item) => item.id)),
-    account: breakdown(transactions, 'accountId', accountNames, accounts, accounts.filter((item) => !item.isArchived).map((item) => item.id)),
+    category: breakdown(transactions, 'categoryId', categoryNames, categories.filter((item) => !item.isArchived).map((item) => item.id)),
+    account: breakdown(transactions, 'accountId', accountNames, accounts.filter((item) => !item.isArchived).map((item) => item.id)),
   };
 }
 
@@ -190,13 +185,12 @@ export function filterReflectionAnnualTransactions(
 export function filterReflectionTrendTransactions(
   transactions: Transaction[],
   id: string,
-  accounts: Account[],
 ) {
   const [yearText, monthText] = id.split('-');
   const year = Number(yearText);
   const month = Number(monthText);
   if (!Number.isInteger(year) || !Number.isInteger(month)) return [];
   return monthTransactions(transactions, year, month).filter(
-    (t) => isCountedIncome(t, accounts) || isCountedExpense(t, accounts),
+    (t) => isCountedIncome(t) || isCountedExpense(t),
   );
 }
