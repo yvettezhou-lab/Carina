@@ -330,3 +330,12 @@
 .reflection-trend-all{display:flex;flex-direction:column;gap:0;margin-top:8px;border-top:1px solid var(--line)}
 .reflection-trend-all button{display:grid;grid-template-columns:.55fr 1fr 1fr;gap:8px;width:100%;padding:10px 0;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:11px;text-align:left;font-variant-numeric:tabular-nums}
 .reflection-trend-all button span:not(:first-child){text-align:right}
+
+/* Clickable income/expense summary cards and their transaction breakdown. */
+.reflection-summary>button{appearance:none;-webkit-appearance:none;display:block;width:100%;min-width:0;text-align:left;background:rgba(255,252,244,.72);border:0;border-radius:0;padding:15px 12px;color:var(--ink);font:inherit;cursor:pointer;}
+.reflection-summary>button.selected{background:rgba(177,139,68,.13);box-shadow:inset 0 -2px 0 var(--gold, #ad8744);}
+.reflection-summary>button>span{display:block;color:var(--muted);font-size:9px;letter-spacing:.13em;}
+.reflection-summary>button>strong{display:block;margin-top:8px;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.reflection-summary-detail{margin:12px 0 18px;padding:14px;}
+@media(max-width:520px){.reflection-summary>button{padding:12px 8px}.reflection-summary>button>span{font-size:8px}.reflection-summary>button>strong{font-size:12px}}
+@media(max-width:430px){.reflection-summary>button>strong{font-size:11px}}
