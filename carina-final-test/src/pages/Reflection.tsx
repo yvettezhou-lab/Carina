@@ -75,6 +75,15 @@ export function Reflection() {
   const annualData = useMemo(() => buildReflectionAnnualData(transactions, categories, accounts, year), [transactions, categories, accounts, year]);
   const activeData = period === 'year' ? annualData : data;
 
+  const totalSummary = useMemo(() => {
+    const start = period === 'year' ? new Date(year, 0, 1).getTime() : new Date(year, month, 1).getTime();
+    const end = period === 'year' ? new Date(year + 1, 0, 1).getTime() : new Date(year, month + 1, 1).getTime();
+    const rows = transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
+    const income = rows.filter((t) => t.flow === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const expense = rows.filter((t) => t.flow === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    return { income, expense, netFlow: income - expense };
+  }, [transactions, period, year, month]);
+
   const summaryTransactions = useMemo(() => {
     if (!summaryFlow) return [];
     const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
@@ -203,10 +212,19 @@ export function Reflection() {
         </div>
       </div>
 
-      <div className="reflection-summary">
-        <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'income' ? undefined : 'income')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'income' ? undefined : 'income'); }}><span>INCOME</span><strong className="positive">¥{activeData.income.toFixed(2)}</strong></div>
-        <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'expense' ? undefined : 'expense')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'expense' ? undefined : 'expense'); }}><span>EXPENSE</span><strong>¥{activeData.expense.toFixed(2)}</strong></div>
-        <div><span>NET FLOW</span><strong className={activeData.netFlow >= 0 ? 'positive' : 'negative'}>{activeData.netFlow >= 0 ? '+' : '−'} ¥{Math.abs(activeData.netFlow).toFixed(2)}</strong></div>
+      <div className="reflection-summary-pair">
+        <div className="reflection-summary-label">TOTAL · 总流水</div>
+        <div className="reflection-summary">
+          <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'income' ? undefined : 'income')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'income' ? undefined : 'income'); }}><span>INCOME</span><strong className="positive">¥{totalSummary.income.toFixed(2)}</strong></div>
+          <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'expense' ? undefined : 'expense')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'expense' ? undefined : 'expense'); }}><span>EXPENSE</span><strong>¥{totalSummary.expense.toFixed(2)}</strong></div>
+          <div><span>NET FLOW</span><strong className={totalSummary.netFlow >= 0 ? 'positive' : 'negative'}>{totalSummary.netFlow >= 0 ? '+' : '−'} ¥{Math.abs(totalSummary.netFlow).toFixed(2)}</strong></div>
+        </div>
+        <div className="reflection-summary-label">PERSONAL · 个人净资产口径</div>
+        <div className="reflection-summary">
+          <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'income' ? undefined : 'income')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'income' ? undefined : 'income'); }}><span>INCOME</span><strong className="positive">¥{activeData.income.toFixed(2)}</strong></div>
+          <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'expense' ? undefined : 'expense')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'expense' ? undefined : 'expense'); }}><span>EXPENSE</span><strong>¥{activeData.expense.toFixed(2)}</strong></div>
+          <div><span>NET FLOW</span><strong className={activeData.netFlow >= 0 ? 'positive' : 'negative'}>{activeData.netFlow >= 0 ? '+' : '−'} ¥{Math.abs(activeData.netFlow).toFixed(2)}</strong></div>
+        </div>
       </div>
 
       {summaryFlow && (
