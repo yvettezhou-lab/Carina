@@ -57,6 +57,7 @@ export function Reflection() {
   const [chartType, setChartType] = useState<'donut' | 'bar'>('donut');
   const [showAllDrillDown, setShowAllDrillDown] = useState(false);
   const [summaryFlow, setSummaryFlow] = useState<'income' | 'expense' | undefined>();
+  const [summaryScope, setSummaryScope] = useState<'total' | 'personal'>('personal');
 
   useEffect(() => {
     let alive = true;
@@ -90,12 +91,12 @@ export function Reflection() {
     const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
     return sortTransactionsNewestFirst(collapseForDrillDown(transactions.filter((t) => {
       const date = new Date(t.dateTime);
-      const included = summaryFlow === 'income'
-        ? t.flow === 'income' && t.kind !== 'reimbursement'
-        : t.flow === 'expense' && t.kind !== 'advance';
+      const included = summaryScope === 'total'
+        ? (summaryFlow === 'income' ? t.flow === 'income' : t.flow === 'expense')
+        : (summaryFlow === 'income' ? t.flow === 'income' && t.kind !== 'reimbursement' : t.flow === 'expense' && t.kind !== 'advance');
       return included && date >= start && date < end;
     })));
-  }, [transactions, summaryFlow, period, year, month]);
+  }, [transactions, summaryFlow, summaryScope, period, year, month]);
 
   const personData = useMemo(() => {
     const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
@@ -212,18 +213,21 @@ export function Reflection() {
         </div>
       </div>
 
-      <div className="reflection-summary-pair">
-        <div className="reflection-summary-label">TOTAL · 总流水</div>
-        <div className="reflection-summary">
-          <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'income' ? undefined : 'income')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'income' ? undefined : 'income'); }}><span>INCOME</span><strong className="positive">¥{totalSummary.income.toFixed(2)}</strong></div>
-          <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'expense' ? undefined : 'expense')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'expense' ? undefined : 'expense'); }}><span>EXPENSE</span><strong>¥{totalSummary.expense.toFixed(2)}</strong></div>
-          <div><span>NET FLOW</span><strong className={totalSummary.netFlow >= 0 ? 'positive' : 'negative'}>{totalSummary.netFlow >= 0 ? '+' : '−'} ¥{Math.abs(totalSummary.netFlow).toFixed(2)}</strong></div>
+      <div className="reflection-summary-table">
+        <div className="reflection-summary-table-head">
+          <span>ACCOUNTING VIEW</span><span>INCOME</span><span>EXPENSE</span><span>NET FLOW</span>
         </div>
-        <div className="reflection-summary-label">PERSONAL · 个人净资产口径</div>
-        <div className="reflection-summary">
-          <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'income' ? undefined : 'income')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'income' ? undefined : 'income'); }}><span>INCOME</span><strong className="positive">¥{activeData.income.toFixed(2)}</strong></div>
-          <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'expense' ? undefined : 'expense')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'expense' ? undefined : 'expense'); }}><span>EXPENSE</span><strong>¥{activeData.expense.toFixed(2)}</strong></div>
-          <div><span>NET FLOW</span><strong className={activeData.netFlow >= 0 ? 'positive' : 'negative'}>{activeData.netFlow >= 0 ? '+' : '−'} ¥{Math.abs(activeData.netFlow).toFixed(2)}</strong></div>
+        <div className="reflection-summary-table-row">
+          <strong>Total<br/><small>总流水</small></strong>
+          <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('income'); }}><span>INCOME</span><b className="positive">¥{totalSummary.income.toFixed(2)}</b></button>
+          <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('expense'); }}><span>EXPENSE</span><b>¥{totalSummary.expense.toFixed(2)}</b></button>
+          <div><span>NET FLOW</span><b className={totalSummary.netFlow >= 0 ? 'positive' : 'negative'}>{totalSummary.netFlow >= 0 ? '+' : '−'}¥{Math.abs(totalSummary.netFlow).toFixed(2)}</b></div>
+        </div>
+        <div className="reflection-summary-table-row">
+          <strong>Personal<br/><small>净资产口径</small></strong>
+          <button type="button" onClick={() => { setSummaryScope('personal'); setSummaryFlow('income'); }}><span>INCOME</span><b className="positive">¥{activeData.income.toFixed(2)}</b></button>
+          <button type="button" onClick={() => { setSummaryScope('personal'); setSummaryFlow('expense'); }}><span>EXPENSE</span><b>¥{activeData.expense.toFixed(2)}</b></button>
+          <div><span>NET FLOW</span><b className={activeData.netFlow >= 0 ? 'positive' : 'negative'}>{activeData.netFlow >= 0 ? '+' : '−'}¥{Math.abs(activeData.netFlow).toFixed(2)}</b></div>
         </div>
       </div>
 
