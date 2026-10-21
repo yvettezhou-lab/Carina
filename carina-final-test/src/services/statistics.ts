@@ -151,8 +151,8 @@ export function buildReflectionAnnualData(
     return {
       key: `${year}-${month}`,
       label: new Date(year, month, 1).toLocaleDateString('en-US', { month: 'short' }),
-      income: rows.filter((t) => isCountedIncome(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
-      expense: rows.filter((t) => isCountedExpense(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
+      income: rows.filter(isCountedIncome).reduce((sum, t) => sum + t.amount, 0),
+      expense: rows.filter(isCountedExpense).reduce((sum, t) => sum + t.amount, 0),
     };
   });
 
@@ -165,9 +165,8 @@ export function filterReflectionTransactions(
   month: number,
   mode: 'category' | 'account',
   id: string,
-  accounts: Account[],
 ) {
-  const current = monthTransactions(transactions, year, month).filter((t) => isCountedExpense(t, accounts));
+  const current = monthTransactions(transactions, year, month).filter(isCountedExpense);
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
@@ -176,9 +175,8 @@ export function filterReflectionAnnualTransactions(
   year: number,
   mode: 'category' | 'account',
   id: string,
-  accounts: Account[],
 ) {
-  const current = yearTransactions(transactions, year).filter((t) => isCountedExpense(t, accounts));
+  const current = yearTransactions(transactions, year).filter(isCountedExpense);
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
