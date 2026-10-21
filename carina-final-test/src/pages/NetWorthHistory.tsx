@@ -175,7 +175,7 @@ export function NetWorthHistory() {
             <button type="button" disabled={saving} onClick={() => void saveBaseline()}>{saving ? 'Saving…' : 'Save baseline'}</button>
           </div>
         )}
-        {baseline && data.points.length > 0 && data.selectedCurrency ? (
+        {data.points.length > 0 && data.selectedCurrency ? (
           <>
             <div className="networth-chart">
               {(() => {
