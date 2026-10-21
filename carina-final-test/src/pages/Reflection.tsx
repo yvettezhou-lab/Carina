@@ -214,9 +214,6 @@ export function Reflection() {
       </div>
 
       <div className="reflection-summary-table">
-        <div className="reflection-summary-table-head">
-          <span>ACCOUNTING VIEW</span><span>INCOME</span><span>EXPENSE</span><span>NET FLOW</span>
-        </div>
         <div className="reflection-summary-table-row">
           <strong>Total<br/><small>总流水</small></strong>
           <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('income'); }}><span>INCOME</span><b className="positive">¥{totalSummary.income.toFixed(2)}</b></button>
