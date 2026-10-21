@@ -57,6 +57,10 @@ export function Reflection() {
   const [chartType, setChartType] = useState<'donut' | 'bar'>('donut');
   const [showAllDrillDown, setShowAllDrillDown] = useState(false);
   const [summaryFlow, setSummaryFlow] = useState<'income' | 'expense' | 'advances' | undefined>();
+  const toggleSummaryFlow = (scope: 'total' | 'personal', flow: 'income' | 'expense' | 'advances') => {
+    setSummaryFlow((current) => current === flow && summaryScope === scope ? undefined : flow);
+    setSummaryScope(scope);
+  };
   const [summaryScope, setSummaryScope] = useState<'total' | 'personal'>('personal');
 
   useEffect(() => {
@@ -250,14 +254,14 @@ export function Reflection() {
       <div className="reflection-summary-table">
         <div className="reflection-summary-table-row">
           <strong>Total<br/><small>总流水</small></strong>
-          <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('income'); }}><span>INCOME</span><b className="positive">¥{totalSummary.income.toFixed(2)}</b></button>
-          <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('expense'); }}><span>EXPENSE</span><b>¥{totalSummary.expense.toFixed(2)}</b></button>
-          <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('advances'); }}><span>ADVANCES</span><b>¥{totalSummary.advances.toFixed(2)}</b></button>
+          <button type="button" onClick={() => toggleSummaryFlow('total', 'income')}><span>INCOME</span><b className="positive">¥{totalSummary.income.toFixed(2)}</b></button>
+          <button type="button" onClick={() => toggleSummaryFlow('total', 'expense')}><span>EXPENSE</span><b>¥{totalSummary.expense.toFixed(2)}</b></button>
+          <button type="button" onClick={() => toggleSummaryFlow('total', 'advances')}><span>ADVANCES</span><b>¥{totalSummary.advances.toFixed(2)}</b></button>
         </div>
         <div className="reflection-summary-table-row">
           <strong>Personal<br/><small>净资产口径</small></strong>
-          <button type="button" onClick={() => { setSummaryScope('personal'); setSummaryFlow('income'); }}><span>INCOME</span><b className="positive">¥{activeData.income.toFixed(2)}</b></button>
-          <button type="button" onClick={() => { setSummaryScope('personal'); setSummaryFlow('expense'); }}><span>EXPENSE</span><b>¥{activeData.expense.toFixed(2)}</b></button>
+          <button type="button" onClick={() => toggleSummaryFlow('personal', 'income')}><span>INCOME</span><b className="positive">¥{activeData.income.toFixed(2)}</b></button>
+          <button type="button" onClick={() => toggleSummaryFlow('personal', 'expense')}><span>EXPENSE</span><b>¥{activeData.expense.toFixed(2)}</b></button>
           <div><span>NET FLOW</span><b className={activeData.netFlow >= 0 ? 'positive' : 'negative'}>{activeData.netFlow >= 0 ? '+' : '−'}¥{Math.abs(activeData.netFlow).toFixed(2)}</b></div>
         </div>
       </div>
