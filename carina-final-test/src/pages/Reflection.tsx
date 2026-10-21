@@ -221,7 +221,7 @@ export function Reflection() {
           <strong>Total<br/><small>总流水</small></strong>
           <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('income'); }}><span>INCOME</span><b className="positive">¥{totalSummary.income.toFixed(2)}</b></button>
           <button type="button" onClick={() => { setSummaryScope('total'); setSummaryFlow('expense'); }}><span>EXPENSE</span><b>¥{totalSummary.expense.toFixed(2)}</b></button>
-          <div><span>NET FLOW</span><b className={totalSummary.netFlow >= 0 ? 'positive' : 'negative'}>{totalSummary.netFlow >= 0 ? '+' : '−'}¥{Math.abs(totalSummary.netFlow).toFixed(2)}</b></div>
+          <div><span>ADVANCES</span><b className={totalSummary.netFlow >= 0 ? 'positive' : 'negative'}>{totalSummary.netFlow >= 0 ? '+' : '−'}¥{Math.abs(totalSummary.netFlow).toFixed(2)}</b></div>
         </div>
         <div className="reflection-summary-table-row">
           <strong>Personal<br/><small>净资产口径</small></strong>
