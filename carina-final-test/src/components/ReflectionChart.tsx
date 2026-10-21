@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { ReflectionBreakdown, ReflectionTrendPoint } from '@/services/statistics';
 
 type Props =
@@ -5,7 +6,8 @@ type Props =
   | { mode: 'trend'; chartType: 'bar'; data: ReflectionTrendPoint[]; selectedId?: string; onSelect: (id: string) => void; onToggleChart: () => void };
 
 function Donut({ data, selectedId, onSelect, onToggleChart }: { data: ReflectionBreakdown[]; selectedId?: string; onSelect: (id: string) => void; onToggleChart: () => void }) {
-  const top = data.slice(0, 6);
+  const [showAll, setShowAll] = useState(false);
+  const top = showAll ? data : data.slice(0, 6);
   const total = top.reduce((sum, item) => sum + item.amount, 0);
   let cursor = 0;
   const segments = top.map((item, index) => {
@@ -28,19 +30,21 @@ function Donut({ data, selectedId, onSelect, onToggleChart }: { data: Reflection
       <div className="reflection-breakdown-list">
         {data.length === 0 ? (
           <div className="empty"><span className="empty-script">A quiet month</span><p>No spending recorded yet.</p></div>
-        ) : data.slice(0, 8).map((item) => (
+        ) : (showAll ? data : data.slice(0, 8)).map((item) => (
           <button className={`reflection-breakdown-row ${selectedId === item.id ? 'selected' : ''}`} key={item.id} onClick={() => onSelect(item.id)}>
             <span><i className="reflection-swatch" />{item.name}</span>
             <strong>¥{item.amount.toFixed(2)}</strong>
           </button>
         ))}
+        {data.length > 8 && <button type="button" className="reflection-view-all" onClick={() => setShowAll(v => !v)}>{showAll ? 'Show less' : 'View all'}</button>}
       </div>
     </div>
   );
 }
 
 function BarBreakdown({ data, selectedId, onSelect, onToggleChart }: { data: ReflectionBreakdown[]; selectedId?: string; onSelect: (id: string) => void; onToggleChart: () => void }) {
-  const top = data.slice(0, 8);
+  const [showAll, setShowAll] = useState(false);
+  const top = showAll ? data : data.slice(0, 8);
   const max = Math.max(1, ...top.map((item) => item.amount));
   return (
     <div className="reflection-bar-chart" role="button" tabIndex={0}
@@ -63,11 +67,13 @@ function BarBreakdown({ data, selectedId, onSelect, onToggleChart }: { data: Ref
           <strong>¥{item.amount.toFixed(2)}</strong>
         </button>
       ))}
+      {data.length > 8 && <button type="button" className="reflection-view-all" onClick={(event) => { event.stopPropagation(); setShowAll(v => !v); }}>{showAll ? 'Show less' : 'View all'}</button>}
     </div>
   );
 }
 
 function Trend({ data, selectedId, onSelect }: { data: ReflectionTrendPoint[]; selectedId?: string; onSelect: (id: string) => void }) {
+  const [showAll, setShowAll] = useState(false);
   const max = Math.max(1, ...data.flatMap((item) => [item.income, item.expense]));
   return (
     <div className="reflection-trend">
@@ -83,6 +89,8 @@ function Trend({ data, selectedId, onSelect }: { data: ReflectionTrendPoint[]; s
         ))}
       </div>
       <div className="trend-legend"><span><i className="income-dot" /> Income</span><span><i className="expense-dot" /> Expense</span></div>
+      <button type="button" className="reflection-view-all" onClick={() => setShowAll(v => !v)}>{showAll ? 'Hide details' : 'View all'}</button>
+      {showAll && <div className="reflection-trend-all">{data.map(item => <button type="button" key={item.key} onClick={() => onSelect(item.key)}><span>{item.label}</span><span>Income ¥{item.income.toFixed(2)}</span><span>Expense ¥{item.expense.toFixed(2)}</span></button>)}</div>}
     </div>
   );
 }
