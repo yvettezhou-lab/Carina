@@ -22,6 +22,7 @@ export function Settings() {
   const [categoryEditorOpen,setCategoryEditorOpen]=useState(false);
   const [categoryFlow,setCategoryFlow]=useState<'expense'|'income'>('expense');
   const [categoryName,setCategoryName]=useState('');
+  const [peopleExpanded,setPeopleExpanded]=useState(false);
 
   async function refresh(){
     const active = await db.accounts.filter(x=>!x.isArchived).sortBy('sortOrder');
@@ -123,6 +124,14 @@ async function moveAccount(accountId: string, direction: -1 | 1) {
     await refresh();
   }
 
+  async function moveCategory(categoryId:string,direction:-1|1){
+    const index=categories.findIndex(x=>x.id===categoryId);const target=index+direction;
+    if(index<0||target<0||target>=categories.length)return;
+    const next=[...categories];[next[index],next[target]]=[next[target],next[index]];
+    await Promise.all(next.map((item,i)=>db.categories.update(item.id,{sortOrder:i})));
+    await refresh();
+  }
+
   function addCategory(){
     setCategoryFlow('expense');
     setCategoryName('');
@@ -169,7 +178,7 @@ async function moveAccount(accountId: string, direction: -1 | 1) {
   async function restore(file:File){ await importBackup(await file.text()); await refresh(); if(fileRef.current) fileRef.current.value=''; alert('Restore complete'); }
 
 
- if(section==='home'&&!accountEditorMode)return <section><header className="hero-head inner-head"><div><div className="script-title">Atelier</div><div className="brand-subtitle">YOUR PRIVATE WORKSHOP</div></div></header><div className="settings-intro">Shape the ledger to fit your life.</div><div className="atelier-section"><button type="button" className="atelier-row" onClick={()=>navigate('/settings/accounts')} style={{display:'flex',alignItems:'center',width:'100%',padding:'18px 0',background:'transparent',border:0,borderBottom:'1px solid rgba(120,100,70,.14)',color:'inherit',textAlign:'left'}}><Wallet size={18}/><span style={{flex:1,marginLeft:12}}>Accounts</span><span>›</span></button><button type="button" className="atelier-row" onClick={()=>navigate('/settings/categories')} style={{display:'flex',alignItems:'center',width:'100%',padding:'18px 0',background:'transparent',border:0,borderBottom:'1px solid rgba(120,100,70,.14)',color:'inherit',textAlign:'left'}}><Tags size={18}/><span style={{flex:1,marginLeft:12}}>Categories</span><span>›</span></button></div><div className="atelier-section"><div className="atelier-title"><Users size={17}/><div><span>PEOPLE</span><small>Names that matter to your ledger</small></div></div>{people.map(x=><div className="atelier-row" key={x.id}><span style={{flex:1}}>{x.name}</span><button onClick={()=>editPerson(x)}>Edit</button><button onClick={()=>deletePerson(x)}>Delete</button></div>)}<button className="atelier-add" onClick={addPerson}><Plus size={15}/> Add person</button></div><div className="atelier-section"><div className="atelier-title"><Database size={17}/><div><span>ARCHIVE</span><small>Keep a safe copy of Carina</small></div></div><button className="data-action" onClick={backup}><Download size={15}/> Export backup</button><button className="data-action" onClick={()=>fileRef.current?.click()}><Upload size={15}/> Restore backup</button><input ref={fileRef} type="file" accept="application/json" hidden onChange={e=>{const f=e.target.files?.[0];if(f)restore(f).catch(err=>alert(err.message))}}/></div></section>;
+ if(section==='home'&&!accountEditorMode)return <section><header className="hero-head inner-head"><div><div className="script-title">Atelier</div><div className="brand-subtitle">YOUR PRIVATE WORKSHOP</div></div></header><div className="settings-intro">Shape the ledger to fit your life.</div><div className="atelier-section"><button type="button" className="atelier-row" onClick={()=>navigate('/settings/accounts')} style={{display:'flex',alignItems:'center',width:'100%',padding:'18px 0',background:'transparent',border:0,borderBottom:'1px solid rgba(120,100,70,.14)',color:'inherit',textAlign:'left'}}><Wallet size={18}/><span style={{flex:1,marginLeft:12}}>Accounts</span><span>›</span></button><button type="button" className="atelier-row" onClick={()=>navigate('/settings/categories')} style={{display:'flex',alignItems:'center',width:'100%',padding:'18px 0',background:'transparent',border:0,borderBottom:'1px solid rgba(120,100,70,.14)',color:'inherit',textAlign:'left'}}><Tags size={18}/><span style={{flex:1,marginLeft:12}}>Categories</span><span>›</span></button></div><div className="atelier-section"><button type="button" className="atelier-title" onClick={()=>setPeopleExpanded(v=>!v)} aria-expanded={peopleExpanded} style={{display:"flex",alignItems:"center",width:"100%",textAlign:"left",border:0,background:"transparent",color:"inherit",cursor:"pointer"}}><Users size={17}/><div style={{flex:1}}><span>PEOPLE</span><small>Names that matter to your ledger · {people.length}</small></div><span>{peopleExpanded?"−":"+"}</span></button>{peopleExpanded&&<>{people.map(x=><div className="atelier-row" key={x.id}><span style={{flex:1}}>{x.name}</span><button onClick={()=>editPerson(x)}>Edit</button><button onClick={()=>deletePerson(x)}>Delete</button></div>)}<button className="atelier-add" onClick={addPerson}><Plus size={15}/> Add person</button></>}</div><div className="atelier-section"><div className="atelier-title"><Database size={17}/><div><span>ARCHIVE</span><small>Keep a safe copy of Carina</small></div></div><button className="data-action" onClick={backup}><Download size={15}/> Export backup</button><button className="data-action" onClick={()=>fileRef.current?.click()}><Upload size={15}/> Restore backup</button><input ref={fileRef} type="file" accept="application/json" hidden onChange={e=>{const f=e.target.files?.[0];if(f)restore(f).catch(err=>alert(err.message))}}/></div></section>;
  if(accountEditorMode){
       return (
         <section>
@@ -494,7 +503,7 @@ return <section>
 
       </>}
       {section==='categories'&&<><button type="button" onClick={()=>navigate('/settings')} style={{border:0,background:'transparent',color:'inherit',padding:'8px 0 16px'}}>← Settings</button><div className="atelier-section"><div className="atelier-title"><Tags size={17}/><div><span>CATEGORIES</span><small>Organize income and expenses</small></div></div>
-        {categories.map(x=><div className="atelier-row" key={x.id}><span>{x.name}</span><em>{x.flow==='expense'?'Expense':'Income'}</em></div>)}
+        {categories.map((x,i)=><div className="atelier-row" key={x.id} style={{display:"flex",alignItems:"center",gap:10}}><span style={{flex:1}}>{x.name}</span><em>{x.flow==='expense'?'Expense':'Income'}</em><button type="button" aria-label={`Move ${x.name} up`} disabled={i===0} onClick={()=>void moveCategory(x.id,-1)} style={{border:0,background:"transparent",color:"inherit",padding:"8px 4px",opacity:i===0?.25:.7}}>↑</button><button type="button" aria-label={`Move ${x.name} down`} disabled={i===categories.length-1} onClick={()=>void moveCategory(x.id,1)} style={{border:0,background:"transparent",color:"inherit",padding:"8px 4px",opacity:i===categories.length-1?.25:.7}}>↓</button></div>)}
       <button className="atelier-add" onClick={addCategory}><Plus size={15}/> Add category</button>
       {categoryEditorOpen && (
         <div style={{
