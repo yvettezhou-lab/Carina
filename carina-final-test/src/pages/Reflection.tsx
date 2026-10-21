@@ -14,7 +14,7 @@ type NetWorthRange = '6m' | '1y' | '2y' | '5y';
 function collapseForDrillDown(transactions: Transaction[]): Transaction[] {
   const grouped = new Map<string, Transaction[]>();
 
-  transactions.forEach((transaction) => {
+  personalTransactions.forEach((transaction) => {
     let key = `single:${transaction.id}`;
     if (transaction.groupId) {
       key = `group:${transaction.groupId}`;
@@ -72,8 +72,11 @@ export function Reflection() {
     return () => { alive = false; };
   }, []);
 
-  const data = useMemo(() => buildReflectionData(transactions, categories, accounts, year, month), [transactions, categories, accounts, year, month]);
-  const annualData = useMemo(() => buildReflectionAnnualData(transactions, categories, accounts, year), [transactions, categories, accounts, year]);
+  const data = useMemo(() => buildReflectionData(personalTransactions, categories, personalAccounts, year, month), [personalTransactions, categories, personalAccounts, year, month]);
+  const annualData = useMemo(() => buildReflectionAnnualData(personalTransactions, categories, personalAccounts, year), [personalTransactions, categories, personalAccounts, year]);
+  const personalAccounts = useMemo(() => accounts.filter((account) => account.includeInNetWorth !== false), [accounts]);
+  const personalAccountIds = useMemo(() => new Set(personalAccounts.map((account) => account.id)), [personalAccounts]);
+  const personalTransactions = useMemo(() => transactions.filter((transaction) => personalAccountIds.has(transaction.accountId)), [transactions, personalAccountIds]);
   const activeData = period === 'year' ? annualData : data;
 
   const totalSummary = useMemo(() => {
@@ -90,14 +93,15 @@ export function Reflection() {
     if (!summaryFlow) return [];
     const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
     const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
-    return sortTransactionsNewestFirst(collapseForDrillDown(transactions.filter((t) => {
+    const sourceTransactions = summaryScope === 'total' ? transactions : personalTransactions;
+    return sortTransactionsNewestFirst(collapseForDrillDown(sourceTransactions.filter((t) => {
       const date = new Date(t.dateTime);
       const included = summaryScope === 'total'
         ? (summaryFlow === 'income' ? t.flow === 'income' : t.flow === 'expense')
         : (summaryFlow === 'income' ? t.flow === 'income' && t.kind !== 'reimbursement' : t.flow === 'expense' && t.kind !== 'advance');
       return included && date >= start && date < end;
     })));
-  }, [transactions, summaryFlow, summaryScope, period, year, month]);
+  }, [transactions, personalTransactions, summaryFlow, summaryScope, period, year, month]);
 
   const personData = useMemo(() => {
     const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
@@ -121,17 +125,17 @@ export function Reflection() {
     const noPersonAmount = totals.get('__none__') || 0;
     if (noPersonAmount > 0) result.push({ id: '__none__', name: 'No person', amount: noPersonAmount, share: total ? noPersonAmount / total : 0, transactionCount: counts.get('__none__') || 0 });
     return result.sort((a, b) => b.amount - a.amount);
-  }, [transactions, people, accounts, period, year, month]);
+  }, [personalTransactions, people, period, year, month]);
 
   const title = period === 'year' ? String(year) : new Date(year, month, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   const selectedTransactions = useMemo((): Transaction[] => {
     if (!selectedId) return [];
-    if (mode === 'trend') return sortTransactionsNewestFirst(collapseForDrillDown(filterReflectionTrendTransactions(transactions, selectedId)));
+    if (mode === 'trend') return sortTransactionsNewestFirst(collapseForDrillDown(filterReflectionTrendTransactions(personalTransactions, selectedId)));
     if (mode === 'person') {
       const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
       const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
-      return sortTransactionsNewestFirst(transactions.filter((transaction) => {
+      return sortTransactionsNewestFirst(personalTransactions.filter((transaction) => {
         const date = new Date(transaction.dateTime);
         const matchesPeriod = date >= start && date < end;
         const matchesPerson = selectedId === '__none__' ? !transaction.personId : transaction.personId === selectedId;
@@ -140,15 +144,15 @@ export function Reflection() {
     }
     if (mode === 'category') {
       const rows = period === 'year'
-        ? filterReflectionAnnualTransactions(transactions, year, 'category', selectedId)
-        : filterReflectionTransactions(transactions, year, month, 'category', selectedId);
+        ? filterReflectionAnnualTransactions(personalTransactions, year, 'category', selectedId)
+        : filterReflectionTransactions(personalTransactions, year, month, 'category', selectedId);
       return sortTransactionsNewestFirst(collapseForDrillDown(rows));
     }
     const rows = period === 'year'
-      ? filterReflectionAnnualTransactions(transactions, year, 'account', selectedId)
-      : filterReflectionTransactions(transactions, year, month, 'account', selectedId);
+      ? filterReflectionAnnualTransactions(personalTransactions, year, 'account', selectedId)
+      : filterReflectionTransactions(personalTransactions, year, month, 'account', selectedId);
     return sortTransactionsNewestFirst(collapseForDrillDown(rows));
-  }, [transactions, accounts, year, month, period, mode, selectedId]);
+  }, [personalTransactions, year, month, period, mode, selectedId]);
 
   function shift(delta: number) {
     if (period === 'year') setYear((current) => current + delta);
