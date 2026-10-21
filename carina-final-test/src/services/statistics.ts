@@ -71,6 +71,7 @@ function breakdown(
   key: 'categoryId' | 'accountId',
   names: Map<string, string>,
   accounts: Account[],
+  allIds: string[],
 ): ReflectionBreakdown[] {
   const expenses = transactions.filter((t) => isCountedExpense(t, accounts));
   const totals = new Map<string, { amount: number; count: number }>();
@@ -84,15 +85,18 @@ function breakdown(
   }
 
   const total = expenses.reduce((sum, t) => sum + t.amount, 0);
-  return [...totals.entries()]
-    .map(([id, value]) => ({
+  // Build rows from the full active entity list, not only entities that had expenses.
+  // This lets View all reveal accounts/categories with zero spending in the selected period.
+  const ids = new Set([...allIds, ...totals.keys()]);
+  return [...ids]
+    .map((id) => { const value = totals.get(id) ?? { amount: 0, count: 0 }; return ({
       id,
       name: names.get(id) ?? 'Uncategorized',
       amount: value.amount,
       share: total > 0 ? value.amount / total : 0,
       transactionCount: value.count,
-    }))
-    .sort((a, b) => b.amount - a.amount);
+    }); })
+    .sort((a, b) => b.amount - a.amount || a.name.localeCompare(b.name));
 }
 
 function summarize(transactions: Transaction[], categories: Category[], accounts: Account[]) {
@@ -110,8 +114,8 @@ function summarize(transactions: Transaction[], categories: Category[], accounts
     income,
     expense,
     netFlow: income - expense,
-    category: breakdown(transactions, 'categoryId', categoryNames, accounts),
-    account: breakdown(transactions, 'accountId', accountNames, accounts),
+    category: breakdown(transactions, 'categoryId', categoryNames, accounts, categories.filter((item) => !item.isArchived).map((item) => item.id)),
+    account: breakdown(transactions, 'accountId', accountNames, accounts, accounts.filter((item) => !item.isArchived).map((item) => item.id)),
   };
 }
 
