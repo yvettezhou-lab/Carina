@@ -124,6 +124,19 @@ async function moveAccount(accountId: string, direction: -1 | 1) {
     await refresh();
   }
 
+  async function sortCategoriesByFrequency(){
+    const since=Date.now()-90*24*60*60*1000;
+    const recent=await db.transactions.filter(t=>t.dateTime>=since).toArray();
+    const counts=new Map<string,number>();
+    for(const tx of recent)counts.set(tx.categoryId,(counts.get(tx.categoryId)??0)+1);
+    const ordered=[...categories].sort((a,b)=>{
+      const diff=(counts.get(b.id)??0)-(counts.get(a.id)??0);
+      return diff || a.sortOrder-b.sortOrder;
+    });
+    await Promise.all(ordered.map((item,i)=>db.categories.update(item.id,{sortOrder:i})));
+    await refresh();
+  }
+
   async function moveCategory(categoryId:string,direction:-1|1){
     const index=categories.findIndex(x=>x.id===categoryId);const target=index+direction;
     if(index<0||target<0||target>=categories.length)return;
@@ -502,7 +515,7 @@ return <section>
             </div>
 
       </>}
-      {section==='categories'&&<><button type="button" onClick={()=>navigate('/settings')} style={{border:0,background:'transparent',color:'inherit',padding:'8px 0 16px'}}>← Settings</button><div className="atelier-section"><div className="atelier-title"><Tags size={17}/><div><span>CATEGORIES</span><small>Organize income and expenses</small></div></div>
+      {section==='categories'&&<><button type="button" onClick={()=>navigate('/settings')} style={{border:0,background:'transparent',color:'inherit',padding:'8px 0 16px'}}>← Settings</button><div className="atelier-section"><div className="atelier-title"><Tags size={17}/><div><span>CATEGORIES</span><small>Organize income and expenses</small></div></div><button type="button" onClick={()=>void sortCategoriesByFrequency()} style={{margin:"8px 0 14px",padding:"8px 12px",border:"1px solid rgba(120,100,70,.28)",background:"transparent",color:"inherit",font:"inherit"}}>按最近90天使用频率排序</button><small style={{display:"block",opacity:.6,marginBottom:12}}>仅手动执行时更新，之后顺序保持不变；同频分类保留原顺序。</small>
         {categories.map((x,i)=><div className="atelier-row" key={x.id} style={{display:"flex",alignItems:"center",gap:10}}><span style={{flex:1}}>{x.name}</span><em>{x.flow==='expense'?'Expense':'Income'}</em><button type="button" aria-label={`Move ${x.name} up`} disabled={i===0} onClick={()=>void moveCategory(x.id,-1)} style={{border:0,background:"transparent",color:"inherit",padding:"8px 4px",opacity:i===0?.25:.7}}>↑</button><button type="button" aria-label={`Move ${x.name} down`} disabled={i===categories.length-1} onClick={()=>void moveCategory(x.id,1)} style={{border:0,background:"transparent",color:"inherit",padding:"8px 4px",opacity:i===categories.length-1?.25:.7}}>↓</button></div>)}
       <button className="atelier-add" onClick={addCategory}><Plus size={15}/> Add category</button>
       {categoryEditorOpen && (
