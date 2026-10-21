@@ -245,7 +245,7 @@ export function Reflection() {
           <div className="reflection-drilldown-head"><div><span className="panel-kicker">{summaryFlow === 'income' ? 'INCOME DETAILS' : summaryFlow === 'advances' ? 'ADVANCES HISTORY' : 'EXPENSE DETAILS'}</span><strong>{summaryFlow === 'income' ? 'Income details' : summaryFlow === 'advances' ? 'Advances history' : 'Expense details'}</strong></div><span>{summaryTransactions.length} records</span></div>
           {summaryTransactions.map((transaction) => (
             <div className="reflection-transaction" key={transaction.id}>
-              <span><strong>{transaction.description || (summaryFlow === 'income' ? 'Income' : 'Expense')}</strong><small>{new Date(transaction.dateTime).toLocaleDateString('zh-CN')} · {accounts.find((account) => account.id === transaction.accountId)?.name ?? 'Unknown account'}{summaryFlow === 'advances' ? ` · ${transaction.advanceStatus === 'settled' ? '已结算' : '待结算'}` : ''}</small></span>
+              <span><strong>{transaction.description || (summaryFlow === 'income' ? 'Income' : summaryFlow === 'advances' ? 'Advance' : 'Expense')}</strong><small>{new Date(transaction.dateTime).toLocaleDateString('zh-CN')} · {accounts.find((account) => account.id === transaction.accountId)?.name ?? 'Unknown account'}{summaryFlow === 'advances' ? ` · ${transaction.advanceStatus === 'settled' ? '已结算' : '待结算'}` : ''}</small></span>
               <b className={summaryFlow === 'income' ? 'positive' : ''}>{summaryFlow === 'income' ? '+' : '−'}¥{transaction.amount.toFixed(2)}</b>
             </div>
           ))}
