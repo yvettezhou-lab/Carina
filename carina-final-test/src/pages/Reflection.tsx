@@ -56,6 +56,7 @@ export function Reflection() {
   const [selectedId, setSelectedId] = useState<string>();
   const [chartType, setChartType] = useState<'donut' | 'bar'>('donut');
   const [showAllDrillDown, setShowAllDrillDown] = useState(false);
+  const [summaryFlow, setSummaryFlow] = useState<'income' | 'expense' | undefined>();
 
   useEffect(() => {
     let alive = true;
@@ -73,6 +74,19 @@ export function Reflection() {
   const data = useMemo(() => buildReflectionData(transactions, categories, accounts, year, month), [transactions, categories, accounts, year, month]);
   const annualData = useMemo(() => buildReflectionAnnualData(transactions, categories, accounts, year), [transactions, categories, accounts, year]);
   const activeData = period === 'year' ? annualData : data;
+
+  const summaryTransactions = useMemo(() => {
+    if (!summaryFlow) return [];
+    const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
+    const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
+    return sortTransactionsNewestFirst(collapseForDrillDown(transactions.filter((t) => {
+      const date = new Date(t.dateTime);
+      const included = summaryFlow === 'income'
+        ? t.flow === 'income' && t.kind !== 'reimbursement'
+        : t.flow === 'expense' && t.kind !== 'advance';
+      return included && date >= start && date < end;
+    })));
+  }, [transactions, summaryFlow, period, year, month]);
 
   const personData = useMemo(() => {
     const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
@@ -190,10 +204,23 @@ export function Reflection() {
       </div>
 
       <div className="reflection-summary">
-        <div onClick={() => navigate('/ledger')}><span>INCOME</span><strong className="positive">¥{activeData.income.toFixed(2)}</strong></div>
-        <div onClick={() => navigate('/ledger')}><span>EXPENSE</span><strong>¥{activeData.expense.toFixed(2)}</strong></div>
+        <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'income' ? undefined : 'income')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'income' ? undefined : 'income'); }}><span>INCOME</span><strong className="positive">¥{activeData.income.toFixed(2)}</strong></div>
+        <div role="button" tabIndex={0} onClick={() => setSummaryFlow((current) => current === 'expense' ? undefined : 'expense')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSummaryFlow((current) => current === 'expense' ? undefined : 'expense'); }}><span>EXPENSE</span><strong>¥{activeData.expense.toFixed(2)}</strong></div>
         <div><span>NET FLOW</span><strong className={activeData.netFlow >= 0 ? 'positive' : 'negative'}>{activeData.netFlow >= 0 ? '+' : '−'} ¥{Math.abs(activeData.netFlow).toFixed(2)}</strong></div>
       </div>
+
+      {summaryFlow && (
+        <section className="paper-panel reflection-drilldown">
+          <div className="reflection-drilldown-head"><div><span className="panel-kicker">{summaryFlow === 'income' ? 'INCOME DETAILS' : 'EXPENSE DETAILS'}</span><strong>{summaryFlow === 'income' ? 'Income details' : 'Expense details'}</strong></div><span>{summaryTransactions.length} records</span></div>
+          {summaryTransactions.map((transaction) => (
+            <div className="reflection-transaction" key={transaction.id}>
+              <span><strong>{transaction.description || (summaryFlow === 'income' ? 'Income' : 'Expense')}</strong><small>{new Date(transaction.dateTime).toLocaleDateString('zh-CN')} · {accounts.find((account) => account.id === transaction.accountId)?.name ?? 'Unknown account'}</small></span>
+              <b className={summaryFlow === 'income' ? 'positive' : ''}>{summaryFlow === 'income' ? '+' : '−'}¥{transaction.amount.toFixed(2)}</b>
+            </div>
+          ))}
+          <button type="button" className="reflection-drilldown-toggle" onClick={() => setSummaryFlow(undefined)}>Close details</button>
+        </section>
+      )}
 
       <div className="reflection-mode" role="tablist" aria-label="Reflection analysis">
         {([['category', 'Category'], ['account', 'Account'], ['person', 'Person'], ['trend', 'Trend']] as const).map(([value, label]) => (
