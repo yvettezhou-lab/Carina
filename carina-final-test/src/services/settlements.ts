@@ -88,21 +88,26 @@ export async function settleAdvances(i:{
        */
       const principalReceived=money(Math.min(receivedAmount,expectedAmount));
       if(principalReceived>0){
-        const reimbursement:Transaction={
-          id:uid(),
-          description:'代付结算本金',
-          amount:principalReceived,
-          accountId:i.accountId,
-          categoryId:'',
-          personId,
-          flow:'income',
-          dateTime,
-          kind:'reimbursement',
-          settlementId,
-          createdAt:now,
-          updatedAt:now,
-        };
-        await db.transactions.add(reimbursement);
+        const byPerson=new Map<string,number>();
+        for(const x of selected){
+          const id=x.personId || personId;
+          byPerson.set(id,(byPerson.get(id)??0)+x.amount);
+        }
+        const personEntries=[...byPerson.entries()];
+        let allocatedPrincipal=0;
+        for(let index=0;index<personEntries.length;index++){
+          const [id,principal]=personEntries[index]!;
+          const amount=index===personEntries.length-1
+            ? money(principalReceived-allocatedPrincipal)
+            : money(principalReceived*principal/expectedAmount);
+          if(amount<=0) continue;
+          allocatedPrincipal=money(allocatedPrincipal+amount);
+          await db.transactions.add({
+            id:uid(),description:'代付结算本金',amount,accountId:i.accountId,
+            categoryId:'',personId:id,flow:'income',dateTime,kind:'reimbursement',
+            settlementId,createdAt:now,updatedAt:now,
+          });
+        }
       }
 
       // Keep every original advance amount/account unchanged.
@@ -142,41 +147,37 @@ export async function settleAdvances(i:{
          * adjustment proportionally by the original advance amounts.
          */
         const shortfall=money(Math.abs(difference));
-        const byAccount=new Map<string,number>();
+        const bySource=new Map<string,{accountId:string;personId:string;amount:number}>();
         for(const x of selected){
-          byAccount.set(x.accountId,(byAccount.get(x.accountId)??0)+x.amount);
+          const person=x.personId || personId;
+          const key=x.accountId+'::'+person;
+          const entry=bySource.get(key)??{accountId:x.accountId,personId:person,amount:0};
+          entry.amount+=x.amount;
+          bySource.set(key,entry);
         }
-        const sourceAccounts=[...byAccount.entries()];
+        const sourceEntries=[...bySource.values()];
         let allocated=0;
-        for(let index=0;index<sourceAccounts.length;index++){
-          const [sourceAccountId,sourceAmount]=sourceAccounts[index]!;
-          const amount=index===sourceAccounts.length-1
+        for(let index=0;index<sourceEntries.length;index++){
+          const source=sourceEntries[index]!;
+          const amount=index===sourceEntries.length-1
             ? money(shortfall-allocated)
-            : money(shortfall*sourceAmount/expectedAmount);
+            : money(shortfall*source.amount/expectedAmount);
           if(amount<=0) continue;
           allocated=money(allocated+amount);
-          const expense:Transaction={
-            id:uid(),
-            description:'代付少收差额（统计调整）',
-            amount,
-            accountId:sourceAccountId,
-            categoryId:differenceCategoryId!,
-            personId:i.personId,
-            flow:'expense',
-            dateTime,
-            kind:'settlement_difference',
-            settlementId,
+          await db.transactions.add({
+            id:uid(),description:'代付少收差额（统计调整）',amount,
+            accountId:source.accountId,categoryId:differenceCategoryId!,
+            personId:source.personId,flow:'expense',dateTime,
+            kind:'settlement_difference',settlementId,
             note:'非现金流水：只计入支出统计，不重复扣减账户余额',
-            createdAt:now,
-            updatedAt:now,
-          };
-          await db.transactions.add(expense);
+            createdAt:now,updatedAt:now,
+          });
         }
       }
 
       const settlement:Settlement={
         id:settlementId,
-        personId:i.personId,
+        personId,
         transactionIds:i.transactionIds,
         accountId:i.accountId,
         expectedAmount,
