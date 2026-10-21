@@ -68,7 +68,14 @@ function breakdown(
   names: Map<string, string>,
   allIds: string[],
 ): ReflectionBreakdown[] {
-  const expenses = transactions.filter(isCountedExpense);
+  // Account breakdown represents actual money charged to each payment account.
+  // Include advances here because they still affect the account's running balance.
+  // Category/overall personal expense totals continue to exclude advances.
+  const expenses = transactions.filter((transaction) =>
+    key === 'accountId'
+      ? transaction.flow === 'expense'
+      : isCountedExpense(transaction),
+  );
   const totals = new Map<string, { amount: number; count: number }>();
 
   for (const transaction of expenses) {
