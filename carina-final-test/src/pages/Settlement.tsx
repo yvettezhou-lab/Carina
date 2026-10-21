@@ -28,7 +28,6 @@ export function Settlement() {
   const [correctionDate, setCorrectionDate] = useState('');
   const [correctionReason, setCorrectionReason] = useState('');
   const [correctionMessage, setCorrectionMessage] = useState('');
-  const [selectedPersonId, setSelectedPersonId] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [accountId, setAccountId] = useState('');
   const [receivedAmount, setReceivedAmount] = useState('');
@@ -64,25 +63,18 @@ export function Settlement() {
       ]);
       setPeople(p);
       setAccounts(a);
-      if (p[0]) setSelectedPersonId(p[0].id);
       if (a[0]) setAccountId(a[0].id);
       await refreshHistory();
     })();
   }, []);
 
   useEffect(() => {
-    if (!selectedPersonId) {
-      setAdvances([]);
-      setSelectedIds([]);
-      return;
-    }
     (async () => {
-      const rows = await getPendingAdvances(selectedPersonId);
-      setAdvances(rows);
+      setAdvances(await getPendingAdvances());
       setSelectedIds([]);
       setMessage('');
     })();
-  }, [selectedPersonId]);
+  }, []);
 
   const selected = advances.filter(x => selectedIds.includes(x.id));
   const expectedAmount = selected.reduce((sum, x) => sum + x.amount, 0);
@@ -129,7 +121,6 @@ export function Settlement() {
   };
 
   const handleSettle = async () => {
-    if (!selectedPersonId) return setMessage('请选择人物');
     if (!selectedIds.length) return setMessage('至少选择一笔代付');
     if (!accountId) return setMessage('请选择收款账户');
     if (!Number.isFinite(received) || received < 0) return setMessage('请输入有效的收回金额');
@@ -138,14 +129,13 @@ export function Settlement() {
       const [year, month, day] = settlementDate.split('-').map(Number);
       const dateTime = new Date(year, month - 1, day).getTime();
       await settleAdvances({
-        personId: selectedPersonId,
         transactionIds: selectedIds,
         accountId,
         receivedAmount: received,
         dateTime,
       });
       setReceivedAmount('');
-      setAdvances(await getPendingAdvances(selectedPersonId));
+      setAdvances(await getPendingAdvances());
       setSelectedIds([]);
       await refreshHistory();
       setMessage('结算完成');
@@ -168,15 +158,6 @@ export function Settlement() {
 
       {view === 'settle' ? (
         <div className="settlement-form">
-          <div className="settlement-section">
-            <div className="settlement-section-label">人物</div>
-            <div className="settlement-people">
-              {people.map(person => (
-                <button key={person.id} type="button" className={`settlement-person ${selectedPersonId === person.id ? 'selected' : ''}`} onClick={() => setSelectedPersonId(person.id)}>{person.name}</button>
-              ))}
-            </div>
-          </div>
-
           <div className="settlement-section settlement-pending">
             <div className="settlement-section-title">
               <span>待结算代付</span>
@@ -189,7 +170,7 @@ export function Settlement() {
                   return (
                     <label key={item.id} className={`settlement-item ${active ? 'selected' : ''}`}>
                       <input type="checkbox" checked={active} onChange={() => toggle(item.id)} />
-                      <span className="settlement-item-main"><strong>{item.description}</strong><small>{new Date(item.dateTime).toLocaleDateString('zh-CN')}</small></span>
+                      <span className="settlement-item-main"><strong>{item.description}</strong><small>{new Date(item.dateTime).toLocaleDateString('zh-CN')} · {peopleById.get(item.personId || '') || '未指定人物'}</small></span>
                       <b>¥{item.amount.toFixed(2)}</b>
                     </label>
                   );
