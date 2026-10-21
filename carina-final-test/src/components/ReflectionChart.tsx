@@ -36,7 +36,7 @@ function Donut({ data, selectedId, onSelect, onToggleChart }: { data: Reflection
             <strong>¥{item.amount.toFixed(2)}</strong>
           </button>
         ))}
-        {data.length > 6 && <button type="button" className="reflection-view-all" onClick={() => setShowAll(v => !v)}>{showAll ? 'Show less' : 'View all'}</button>}
+        <button type="button" className="reflection-view-all" onClick={() => setShowAll(v => !v)}>{showAll ? 'Show less' : 'View all'}</button>
       </div>
     </div>
   );
@@ -67,7 +67,7 @@ function BarBreakdown({ data, selectedId, onSelect, onToggleChart }: { data: Ref
           <strong>¥{item.amount.toFixed(2)}</strong>
         </button>
       ))}
-      {data.length > 8 && <button type="button" className="reflection-view-all" onClick={(event) => { event.stopPropagation(); setShowAll(v => !v); }}>{showAll ? 'Show less' : 'View all'}</button>}
+      <button type="button" className="reflection-view-all" onClick={(event) => { event.stopPropagation(); setShowAll(v => !v); }}>{showAll ? 'Show less' : 'View all'}</button>
     </div>
   );
 }
