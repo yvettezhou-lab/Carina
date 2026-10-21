@@ -37,6 +37,10 @@ function collapseForDrillDown(transactions: Transaction[]): Transaction[] {
   });
 }
 
+function sortTransactionsNewestFirst(transactions: Transaction[]): Transaction[] {
+  return [...transactions].sort((a, b) => b.dateTime - a.dateTime || b.createdAt - a.createdAt);
+}
+
 export function Reflection() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -98,22 +102,22 @@ export function Reflection() {
 
   const selectedTransactions = useMemo((): Transaction[] => {
     if (!selectedId) return [];
-    if (mode === 'trend') return collapseForDrillDown(filterReflectionTrendTransactions(transactions, selectedId));
+    if (mode === 'trend') return sortTransactionsNewestFirst(collapseForDrillDown(filterReflectionTrendTransactions(transactions, selectedId)));
     if (mode === 'person') {
       const start = period === 'year' ? new Date(year, 0, 1) : new Date(year, month, 1);
       const end = period === 'year' ? new Date(year + 1, 0, 1) : new Date(year, month + 1, 1);
-      return transactions.filter((transaction) => {
+      return sortTransactionsNewestFirst(transactions.filter((transaction) => {
         const date = new Date(transaction.dateTime);
         const matchesPeriod = date >= start && date < end;
         const matchesPerson = selectedId === '__none__' ? !transaction.personId : transaction.personId === selectedId;
         return matchesPeriod && transaction.flow === 'expense' && transaction.kind !== 'advance' && matchesPerson;
-      });
+      }));
     }
     if (mode === 'category') {
       const rows = period === 'year'
         ? filterReflectionAnnualTransactions(transactions, year, 'category', selectedId)
         : filterReflectionTransactions(transactions, year, month, 'category', selectedId);
-      return collapseForDrillDown(rows);
+      return sortTransactionsNewestFirst(collapseForDrillDown(rows));
     }
     const rows = period === 'year'
       ? filterReflectionAnnualTransactions(transactions, year, 'account', selectedId)
