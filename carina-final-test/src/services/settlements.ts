@@ -2,15 +2,15 @@ import {db} from '@/database/db';
 import {uid} from '@/utils/id';
 import type {Settlement,Transaction} from '@/models';
 
-export async function getPendingAdvances(personId:string){
+export async function getPendingAdvances(personId?:string){
   const rows=await db.transactions.toArray();
   return rows
-    .filter(t=>t.kind==='advance'&&t.advanceStatus!=='settled'&&t.personId===personId)
+    .filter(t=>t.kind==='advance'&&t.advanceStatus!=='settled'&&(!personId||t.personId===personId))
     .sort((a,b)=>a.dateTime-b.dateTime);
 }
 
 export async function settleAdvances(i:{
-  personId:string;
+  personId?:string;
   transactionIds:string[];
   accountId:string;
   receivedAmount:number;
@@ -44,7 +44,7 @@ export async function settleAdvances(i:{
       if(selected.some(x=>
         x.kind!=='advance' ||
         x.advanceStatus==='settled' ||
-        x.personId!==i.personId
+        (i.personId && x.personId!==i.personId)
       )){
         throw new Error('存在无效或已结算的代付记录');
       }
@@ -52,6 +52,7 @@ export async function settleAdvances(i:{
         throw new Error('收款账户不存在');
       }
 
+      const personId=i.personId || selected[0]?.personId || '';
       const expectedAmount=money(selected.reduce((sum,x)=>sum+x.amount,0));
       const difference=money(receivedAmount-expectedAmount);
       let differenceCategoryId:string|undefined;
@@ -93,7 +94,7 @@ export async function settleAdvances(i:{
           amount:principalReceived,
           accountId:i.accountId,
           categoryId:'',
-          personId:i.personId,
+          personId,
           flow:'income',
           dateTime,
           kind:'reimbursement',
@@ -121,7 +122,7 @@ export async function settleAdvances(i:{
           amount:difference,
           accountId:i.accountId,
           categoryId:differenceCategoryId!,
-          personId:i.personId,
+          personId,
           flow:'income',
           dateTime,
           kind:'normal',
