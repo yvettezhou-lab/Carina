@@ -202,8 +202,8 @@ export function Reflection() {
       </div>
 
       <div className="reflection-summary">
-        <button type="button" aria-expanded={summaryFlow === 'income'} className={summaryFlow === 'income' ? 'selected' : ''} onClick={() => setSummaryFlow((current) => current === 'income' ? undefined : 'income')}><span>INCOME ↗</span><strong className="positive">¥{activeData.income.toFixed(2)}</strong></button>
-        <button type="button" aria-expanded={summaryFlow === 'expense'} className={summaryFlow === 'expense' ? 'selected' : ''} onClick={() => setSummaryFlow((current) => current === 'expense' ? undefined : 'expense')}><span>EXPENSE ↗</span><strong>¥{activeData.expense.toFixed(2)}</strong></button>
+        <button type="button" aria-expanded={summaryFlow === 'income'} className={summaryFlow === 'income' ? 'selected' : ''} onClick={() => setSummaryFlow((current) => current === 'income' ? undefined : 'income')}><span>INCOME</span><strong className="positive">¥{activeData.income.toFixed(2)}</strong></button>
+        <button type="button" aria-expanded={summaryFlow === 'expense'} className={summaryFlow === 'expense' ? 'selected' : ''} onClick={() => setSummaryFlow((current) => current === 'expense' ? undefined : 'expense')}><span>EXPENSE</span><strong>¥{activeData.expense.toFixed(2)}</strong></button>
         <div><span>NET FLOW</span><strong className={activeData.netFlow >= 0 ? 'positive' : 'negative'}>{activeData.netFlow >= 0 ? '+' : '−'} ¥{Math.abs(activeData.netFlow).toFixed(2)}</strong></div>
       </div>
 
