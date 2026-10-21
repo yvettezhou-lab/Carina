@@ -75,8 +75,9 @@ export function Reflection() {
   const personalAccounts = useMemo(() => accounts.filter((account) => account.includeInNetWorth !== false), [accounts]);
   const personalAccountIds = useMemo(() => new Set(personalAccounts.map((account) => account.id)), [personalAccounts]);
   const personalTransactions = useMemo(() => transactions.filter((transaction) => {
-    const isAdvanceRelated = transaction.kind === 'advance' || transaction.kind === 'reimbursement' || transaction.kind === 'settlement_difference' || Boolean(transaction.settlementId);
-    return personalAccountIds.has(transaction.accountId) && !isAdvanceRelated;
+    const isPositiveSettlementDifference = transaction.flow === 'income' && transaction.kind === 'normal' && transaction.description === '代付多收差额';
+    const isExcludedAdvanceActivity = transaction.kind === 'advance' || transaction.kind === 'reimbursement' || transaction.kind === 'settlement_difference' || (Boolean(transaction.settlementId) && !isPositiveSettlementDifference);
+    return personalAccountIds.has(transaction.accountId) && !isExcludedAdvanceActivity;
   }), [transactions, personalAccountIds]);
   const data = useMemo(() => buildReflectionData(personalTransactions, categories, personalAccounts, year, month), [personalTransactions, categories, personalAccounts, year, month]);
   const annualData = useMemo(() => buildReflectionAnnualData(personalTransactions, categories, personalAccounts, year), [personalTransactions, categories, personalAccounts, year]);
@@ -86,9 +87,10 @@ export function Reflection() {
     const start = period === 'year' ? new Date(year, 0, 1).getTime() : new Date(year, month, 1).getTime();
     const end = period === 'year' ? new Date(year + 1, 0, 1).getTime() : new Date(year, month + 1, 1).getTime();
     const rows = transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
-    const isAdvanceRelated = (t: Transaction) => t.kind === 'advance' || t.kind === 'reimbursement' || t.kind === 'settlement_difference' || Boolean(t.settlementId);
-    const income = rows.filter((t) => t.flow === 'income' && !isAdvanceRelated(t)).reduce((sum, t) => sum + t.amount, 0);
-    const expense = rows.filter((t) => t.flow === 'expense' && !isAdvanceRelated(t)).reduce((sum, t) => sum + t.amount, 0);
+    const isPositiveSettlementDifference = (t: Transaction) => t.flow === 'income' && t.kind === 'normal' && t.description === '代付多收差额';
+    const isExcludedAdvanceActivity = (t: Transaction) => t.kind === 'advance' || t.kind === 'reimbursement' || t.kind === 'settlement_difference' || (Boolean(t.settlementId) && !isPositiveSettlementDifference(t));
+    const income = rows.filter((t) => t.flow === 'income' && !isExcludedAdvanceActivity(t)).reduce((sum, t) => sum + t.amount, 0);
+    const expense = rows.filter((t) => t.flow === 'expense' && !isExcludedAdvanceActivity(t)).reduce((sum, t) => sum + t.amount, 0);
     const advances = rows.filter((t) => t.flow === 'expense' && t.kind === 'advance').reduce((sum, t) => sum + t.amount, 0);
     return { income, expense, advances, netFlow: income - expense };
   }, [transactions, period, year, month]);
@@ -100,12 +102,11 @@ export function Reflection() {
     const sourceTransactions = summaryScope === 'total' ? transactions : personalTransactions;
     return sortTransactionsNewestFirst(collapseForDrillDown(sourceTransactions.filter((t) => {
       const date = new Date(t.dateTime);
-      const isAdvanceRelated = t.kind === 'advance' || t.kind === 'reimbursement' || t.kind === 'settlement_difference' || Boolean(t.settlementId);
+      const isPositiveSettlementDifference = t.flow === 'income' && t.kind === 'normal' && t.description === '代付多收差额';
+      const isExcludedAdvanceActivity = t.kind === 'advance' || t.kind === 'reimbursement' || t.kind === 'settlement_difference' || (Boolean(t.settlementId) && !isPositiveSettlementDifference);
       const included = summaryFlow === 'advances'
         ? summaryScope === 'total' && t.flow === 'expense' && t.kind === 'advance'
-        : summaryScope === 'total'
-          ? (summaryFlow === 'income' ? t.flow === 'income' && !isAdvanceRelated : t.flow === 'expense' && !isAdvanceRelated)
-          : (summaryFlow === 'income' ? t.flow === 'income' && !isAdvanceRelated : t.flow === 'expense' && !isAdvanceRelated);
+        : (summaryFlow === 'income' ? t.flow === 'income' && !isExcludedAdvanceActivity : t.flow === 'expense' && !isExcludedAdvanceActivity);
       return included && date >= start && date < end;
     })));
   }, [transactions, personalTransactions, summaryFlow, summaryScope, period, year, month]);
