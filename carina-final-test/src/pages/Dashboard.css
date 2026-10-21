@@ -23,4 +23,4 @@
 .dashboard-view-ledger{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:11px 0 2px;border:0;background:transparent;color:var(--gold);font-size:11px}
 @media(max-width:430px){.dashboard-account-changes{padding-left:48px;padding-right:8px}.dashboard-change-row{gap:7px}.dashboard-change-amount{font-size:11px}}
 
-.account-balance.negative-balance{color:#56745c!important}
+.account-balance.negative-balance{color:#a4574f!important}
