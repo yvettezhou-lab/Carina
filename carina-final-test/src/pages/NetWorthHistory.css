@@ -46,7 +46,7 @@
 .reconciliation-heading .panel-kicker{display:block;margin-bottom:7px}
 .reconciliation-heading h2{margin:0;font-family:'Cormorant Garamond',Georgia,serif;font-size:32px;font-weight:400;color:var(--ink)}
 .reconciliation-account-picker{display:flex;flex-direction:column;gap:8px;margin:0;color:var(--muted);font-size:12px;letter-spacing:.04em}
-.reconciliation-account-picker select{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid var(--line);border-radius:4px;background:rgba(255,252,244,.72);color:var(--ink);font:inherit;font-size:15px;letter-spacing:0}
+.reconciliation-account-picker select{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid var(--line);border-radius:4px;background:rgba(255,252,244,.72);color:var(--ink);font:inherit;font-size:16px;letter-spacing:0}
 .reconciliation-account{padding:18px 0 20px;border-bottom:1px solid var(--line)}
 .reconciliation-account-title{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:4px;color:var(--ink)}
 .reconciliation-account-title strong:first-child{font-size:19px;font-weight:600}
@@ -75,12 +75,12 @@
 .reconciliation-heading .panel-kicker{margin-bottom:4px}
 .reconciliation-heading h2{font-size:28px}
 .reconciliation-account-picker{gap:5px}
-.reconciliation-account-picker select{padding:10px 12px;font-size:14px}
+.reconciliation-account-picker select{padding:10px 12px;font-size:16px}
 .reconciliation-account{padding:12px 0 14px}
 .reconciliation-account-title strong:first-child{font-size:17px}
 .reconciliation-account-title strong:last-child{font-size:16px}
 .reconciliation-field{gap:5px;margin-top:11px;font-size:12px}
-.reconciliation-field input{padding:10px 12px;font-size:15px}
+.reconciliation-field input{padding:10px 12px;font-size:16px}
 .reconciliation-estimate{margin-top:11px;padding:10px 11px}
 .reconciliation-mode-options{margin-top:10px;gap:7px}
 .reconciliation-mode-option{min-height:40px;padding:8px 6px}
@@ -88,6 +88,4 @@
 .reconciliation-page .fab{right:16px;bottom:calc(88px + env(safe-area-inset-bottom));left:auto;transform:none}
 .reconciliation-records-title{font-size:18px}
 @media(max-width:520px){.reconciliation-page .networth-page-header{margin-bottom:18px}.reconciliation-page .script-title{font-size:34px}.reconciliation-panel{padding:16px 14px 18px}.reconciliation-estimate{font-size:11px}}
-/* Prevent iOS Safari from zooming the page when reconciliation fields receive focus. */
-.reconciliation-page input,.reconciliation-page select,.reconciliation-page textarea{font-size:16px!important}
 
