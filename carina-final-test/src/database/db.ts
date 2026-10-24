@@ -1,5 +1,5 @@
 import Dexie,{type Table} from 'dexie';
-import type {Account,Category,Person,ItemProfile,Transaction,Transfer,Settlement,SettlementHistory,NetWorthBaseline,BankReconciliation} from '@/models';
+import type {Account,Category,Person,ItemProfile,Transaction,Transfer,Settlement,SettlementHistory,NetWorthBaseline,BankReconciliation,Subcategory,CategoryMatchRule} from '@/models';
 export class CarinaDatabase extends Dexie{
   accounts!:Table<Account,string>;
   categories!:Table<Category,string>;
@@ -11,6 +11,8 @@ export class CarinaDatabase extends Dexie{
   settlementHistory!:Table<SettlementHistory,string>;
   netWorthBaselines!:Table<NetWorthBaseline,string>;
   bankReconciliations!:Table<BankReconciliation,string>;
+  subcategories!:Table<Subcategory,string>;
+  categoryMatchRules!:Table<CategoryMatchRule,string>;
   constructor(){
     super('carina');
     this.version(1).stores({
@@ -26,6 +28,7 @@ export class CarinaDatabase extends Dexie{
     this.version(4).stores({settlementHistory:'id,settlementId,createdAt'});
     this.version(5).stores({netWorthBaselines:'id'});
     this.version(6).stores({bankReconciliations:'id,accountId,periodEnd'});
+    this.version(7).stores({subcategories:'id,categoryId,sortOrder,isArchived',categoryMatchRules:'id,keyword,categoryId,subcategoryId,priority,isArchived'});
   }
 }
 export const db=new CarinaDatabase();
