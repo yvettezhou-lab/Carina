@@ -5,12 +5,14 @@ import { db } from '@/database/db';
 import { uid } from '@/utils/id';
 import { exportBackup, importBackup } from '@/services/backup';
 import { getAccountBalance } from '@/services/balance';
-import type { Account, Category, Person } from '@/models';
+import type { Account, Category, Person, Subcategory, CategoryMatchRule } from '@/models';
 
 export function Settings() {
  const navigate=useNavigate(); const location=useLocation(); const section=location.pathname.endsWith('/accounts')?'accounts':location.pathname.endsWith('/categories')?'categories':'home';
   const [accounts,setAccounts]=useState<(Account & { balance:number })[]>([]);
   const [categories,setCategories]=useState<Category[]>([]);
+  const [subcategories,setSubcategories]=useState<Subcategory[]>([]);
+  const [matchRules,setMatchRules]=useState<CategoryMatchRule[]>([]);
   const [people,setPeople]=useState<Person[]>([]);
   const fileRef=useRef<HTMLInputElement>(null);
     const [editOpeningBalance,setEditOpeningBalance]=useState('0');
@@ -28,6 +30,8 @@ export function Settings() {
     const active = await db.accounts.filter(x=>!x.isArchived).sortBy('sortOrder');
     setAccounts(await Promise.all(active.map(async x => ({ ...x, balance: await getAccountBalance(x) }))));
     setCategories(await db.categories.filter(x=>!x.isArchived).sortBy('sortOrder'));
+    setSubcategories(await db.subcategories.filter(x=>!x.isArchived).sortBy('sortOrder'));
+    setMatchRules(await db.categoryMatchRules.filter(x=>!x.isArchived).sortBy('priority'));
     setPeople(await db.people.filter(x=>!x.isArchived).sortBy('sortOrder'));
   }
   useEffect(()=>{refresh()},[]);
@@ -165,6 +169,22 @@ async function moveAccount(accountId: string, direction: -1 | 1) {
     setCategoryName('');
     await refresh();
   }
+  async function addSubcategory(category: Category) {
+    const name = prompt('新增二级分类'); if (!name?.trim()) return;
+    if (subcategories.some(x => x.categoryId === category.id && x.name.toLowerCase() === name.trim().toLowerCase())) { alert('二级分类已存在'); return; }
+    await db.subcategories.add({ id: uid(), categoryId: category.id, name: name.trim(), sortOrder: Date.now(), isArchived: false }); await refresh();
+  }
+  async function editSubcategory(sub: Subcategory) { const name = prompt('修改二级分类名称', sub.name); if (!name?.trim()) return; await db.subcategories.update(sub.id, { name: name.trim() }); await refresh(); }
+  async function archiveSubcategory(sub: Subcategory) { if (!confirm('停用此二级分类？历史交易不会删除。')) return; await db.subcategories.update(sub.id, { isArchived: true }); await refresh(); }
+  async function addMatchRule(category: Category) {
+    const subs = subcategories.filter(x => x.categoryId === category.id && !x.isArchived); if (!subs.length) { alert('请先新增二级分类'); return; }
+    const keyword = prompt('输入匹配关键词'); if (!keyword?.trim()) return;
+    const subName = prompt('对应的二级分类名称：' + subs.map(x => x.name).join('、'), subs[0].name); if (!subName?.trim()) return;
+    const sub = subs.find(x => x.name.toLowerCase() === subName.trim().toLowerCase()); if (!sub) { alert('二级分类名称不匹配'); return; }
+    await db.categoryMatchRules.add({ id: uid(), keyword: keyword.trim(), categoryId: category.id, subcategoryId: sub.id, priority: Date.now(), isArchived: false }); await refresh();
+  }
+  async function editMatchRule(rule: CategoryMatchRule) { const keyword = prompt('修改关键词', rule.keyword); if (!keyword?.trim()) return; await db.categoryMatchRules.update(rule.id, { keyword: keyword.trim() }); await refresh(); }
+  async function archiveMatchRule(rule: CategoryMatchRule) { if (!confirm('停用关键词规则？')) return; await db.categoryMatchRules.update(rule.id, { isArchived: true }); await refresh(); }
   async function addPerson(){
     const name=prompt('Person name');
     if(name?.trim()) { await db.people.add({id:uid(),name:name.trim(),isArchived:false,sortOrder:Date.now()}); refresh(); }
@@ -516,7 +536,7 @@ return <section>
 
       </>}
       {section==='categories'&&<><button type="button" onClick={()=>navigate('/settings')} style={{border:0,background:'transparent',color:'inherit',padding:'8px 0 16px'}}>← Settings</button><div className="atelier-section"><div className="atelier-title"><Tags size={17}/><div><span>CATEGORIES</span><small>Organize income and expenses</small></div></div><button type="button" onClick={()=>void sortCategoriesByFrequency()} style={{margin:"8px 0 14px",padding:"8px 12px",border:"1px solid rgba(120,100,70,.28)",background:"transparent",color:"inherit",font:"inherit"}}>按最近90天使用频率排序</button><small style={{display:"block",opacity:.6,marginBottom:12}}>仅手动执行时更新，之后顺序保持不变；同频分类保留原顺序。</small>
-        {categories.map((x,i)=><div className="atelier-row" key={x.id} style={{display:"flex",alignItems:"center",gap:10}}><span style={{flex:1}}>{x.name}</span><em>{x.flow==='expense'?'Expense':'Income'}</em><button type="button" aria-label={`Move ${x.name} up`} disabled={i===0} onClick={()=>void moveCategory(x.id,-1)} style={{border:0,background:"transparent",color:"inherit",padding:"8px 4px",opacity:i===0?.25:.7}}>↑</button><button type="button" aria-label={`Move ${x.name} down`} disabled={i===categories.length-1} onClick={()=>void moveCategory(x.id,1)} style={{border:0,background:"transparent",color:"inherit",padding:"8px 4px",opacity:i===categories.length-1?.25:.7}}>↓</button></div>)}
+        {categories.map((x,i)=><div key={x.id} style={{borderBottom:"1px solid rgba(120,100,70,.14)",padding:"12px 0"}}><div className="atelier-row" style={{display:"flex",alignItems:"center",gap:10}}><span style={{flex:1}}>{x.name}</span><em>{x.flow==='expense'?'Expense':'Income'}</em><button type="button" disabled={i===0} onClick={()=>void moveCategory(x.id,-1)}>↑</button><button type="button" disabled={i===categories.length-1} onClick={()=>void moveCategory(x.id,1)}>↓</button></div><div style={{paddingLeft:12,borderLeft:"2px solid rgba(120,100,70,.18)"}}><small>二级分类（可选）</small>{subcategories.filter(s=>s.categoryId===x.id).map(s=><div key={s.id} style={{display:"flex",gap:8,padding:"5px 0"}}><span style={{flex:1}}>{s.name}</span><button type="button" onClick={()=>void editSubcategory(s)}>编辑</button><button type="button" onClick={()=>void archiveSubcategory(s)}>停用</button></div>)}<button type="button" onClick={()=>void addSubcategory(x)}>＋ 添加二级分类</button><div><small>自动匹配关键词</small>{matchRules.filter(r=>r.categoryId===x.id).map(rule=><div key={rule.id} style={{display:"flex",gap:8,padding:"5px 0"}}><span style={{flex:1}}>{rule.keyword} → {subcategories.find(s=>s.id===rule.subcategoryId)?.name??'未设置'}</span><button type="button" onClick={()=>void editMatchRule(rule)}>编辑</button><button type="button" onClick={()=>void archiveMatchRule(rule)}>停用</button></div>)}<button type="button" onClick={()=>void addMatchRule(x)}>＋ 添加匹配规则</button></div></div></div>)}
       <button className="atelier-add" onClick={addCategory}><Plus size={15}/> Add category</button>
       {categoryEditorOpen && (
         <div style={{
