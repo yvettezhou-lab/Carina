@@ -5,6 +5,7 @@ import { db } from '@/database/db';
 import { uid } from '@/utils/id';
 import { exportBackup, importBackup } from '@/services/backup';
 import { getAccountBalance } from '@/services/balance';
+import { ensureDefaultSubcategories } from '@/services/categoryTaxonomy';
 import type { Account, Category, Person, Subcategory, CategoryMatchRule } from '@/models';
 
 export function Settings() {
@@ -29,7 +30,9 @@ export function Settings() {
   async function refresh(){
     const active = await db.accounts.filter(x=>!x.isArchived).sortBy('sortOrder');
     setAccounts(await Promise.all(active.map(async x => ({ ...x, balance: await getAccountBalance(x) }))));
-    setCategories(await db.categories.filter(x=>!x.isArchived).sortBy('sortOrder'));
+    const activeCategories = await db.categories.filter(x=>!x.isArchived).sortBy('sortOrder');
+    await ensureDefaultSubcategories(activeCategories);
+    setCategories(activeCategories);
     setSubcategories(await db.subcategories.filter(x=>!x.isArchived).sortBy('sortOrder'));
     setMatchRules(await db.categoryMatchRules.filter(x=>!x.isArchived).sortBy('priority'));
     setPeople(await db.people.filter(x=>!x.isArchived).sortBy('sortOrder'));
