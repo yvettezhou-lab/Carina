@@ -41,6 +41,13 @@ export async function matchSubcategory(description: string, categories: Category
   const text = description.trim().toLowerCase();
   if (!text) return undefined;
   const subs = await db.subcategories.toArray();
+  const savedRules = (await db.categoryMatchRules.filter(x => !x.isArchived).toArray()).sort((a, b) => b.priority - a.priority);
+  for (const rule of savedRules) {
+    if (!text.includes(rule.keyword.toLowerCase())) continue;
+    const parent = categories.find(x => x.id === rule.categoryId && !x.isArchived);
+    const sub = subs.find(x => x.id === rule.subcategoryId && x.categoryId === rule.categoryId && !x.isArchived);
+    if (parent && sub) return { categoryId: parent.id, subcategoryId: sub.id };
+  }
   for (const rule of KEYWORDS) {
     const parent = categories.find(x => x.name === rule.category && !x.isArchived);
     const sub = subs.find(x => x.categoryId === parent?.id && x.name === rule.subcategory && !x.isArchived);
