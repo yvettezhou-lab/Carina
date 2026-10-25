@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeftRight, Feather, Filter, Trash2, X } from 'lucide-react';
 import { db } from '@/database/db';
-import type { Account, Category, Person, Transaction, Transfer, Subcategory } from '@/models';
+import type { Account, Category, Person, Transaction, Transfer } from '@/models';
 import { deleteTransaction } from '@/services/transactions';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,7 +27,6 @@ export function Transactions() {
   const [items, setItems] = useState<LedgerItem[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [keyword, setKeyword] = useState('');
@@ -113,7 +112,6 @@ export function Transactions() {
 
     setAccounts([...accountRows].sort((a, b) => a.sortOrder - b.sortOrder));
     setCategories(categoryRows);
-    setSubcategories(subcategoryRows);
     setPeople(personRows);
     setItems([...normal, ...transferRows].sort((a, b) => b.dateTime - a.dateTime));
   }
