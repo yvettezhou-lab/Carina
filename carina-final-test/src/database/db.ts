@@ -35,7 +35,8 @@ export class CarinaDatabase extends Dexie{
       subcategories:'id,categoryId,sortOrder,isArchived',
       categoryMatchRules:'id,keyword,categoryId,subcategoryId,priority,isArchived',
       itemProfiles:'id,name,categoryId,subcategoryId,accountId,personId,useCount,lastUsedAt',
-      transactions:'id,accountId,categoryId,subcategoryId,personId,itemProfileId,flow,dateTime,syncAccountId'
+      transactions:'id,accountId,categoryId,subcategoryId,personId,itemProfileId,flow,dateTime,syncAccountId',
+      settlements:'id,personId,dateTime,differenceCategoryId'
     }).upgrade(async tx=>{
       const categories = await tx.table('categories').toArray();
       const children = categories.filter(c=>c.parentCategoryId);
