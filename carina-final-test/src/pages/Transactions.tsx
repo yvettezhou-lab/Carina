@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeftRight, Feather, Filter, Trash2, X } from 'lucide-react';
 import { db } from '@/database/db';
-import type { Account, Category, Person, Transaction, Transfer } from '@/models';
+import type { Account, Category, Person, Transaction, Transfer, Subcategory } from '@/models';
 import { deleteTransaction } from '@/services/transactions';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +27,7 @@ export function Transactions() {
   const [items, setItems] = useState<LedgerItem[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [keyword, setKeyword] = useState('');
@@ -38,16 +39,18 @@ export function Transactions() {
   const [personFilter, setPersonFilter] = useState('');
 
   async function refresh() {
-    const [tx, transfers, accountRows, categoryRows, personRows] = await Promise.all([
+    const [tx, transfers, accountRows, categoryRows, personRows, subcategoryRows] = await Promise.all([
       db.transactions.orderBy('dateTime').reverse().toArray(),
       db.transfers.orderBy('dateTime').reverse().toArray(),
       db.accounts.toArray(),
       db.categories.toArray(),
-      db.people.toArray()
+      db.people.toArray(),
+      db.subcategories.toArray()
     ]);
 
     const accountNames = Object.fromEntries(accountRows.map(x => [x.id, x.name]));
     const categoryNames = Object.fromEntries(categoryRows.map(x => [x.id, x.name]));
+    const subcategoryNames = Object.fromEntries(subcategoryRows.map(x => [x.id, x.name]));
 
     const grouped = new Map<string, Transaction[]>();
     const legacyPeople = new Map<string, Set<string>>();
@@ -83,7 +86,7 @@ export function Transactions() {
         description: first.description,
         amount: rows.reduce((sum, row) => sum + row.amount, 0),
         flow: first.flow,
-        category: categoryNames[first.categoryId] ?? 'Uncategorized',
+        category: `${categoryNames[first.categoryId] ?? 'Uncategorized'}${first.subcategoryId && subcategoryNames[first.subcategoryId] ? ` · ${subcategoryNames[first.subcategoryId]}` : ''}`,
         categoryId: first.categoryId,
         account: accountNames[first.accountId],
         accountId: first.accountId,
@@ -110,6 +113,7 @@ export function Transactions() {
 
     setAccounts([...accountRows].sort((a, b) => a.sortOrder - b.sortOrder));
     setCategories(categoryRows);
+    setSubcategories(subcategoryRows);
     setPeople(personRows);
     setItems([...normal, ...transferRows].sort((a, b) => b.dateTime - a.dateTime));
   }
@@ -216,7 +220,7 @@ export function Transactions() {
             <input
               value={keyword}
               onChange={e => setKeyword(e.target.value)}
-              placeholder="Description, category or account"
+              placeholder="Description, category, subcategory or account"
             />
           </label>
 
