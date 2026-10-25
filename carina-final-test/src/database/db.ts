@@ -28,37 +28,37 @@ export class CarinaDatabase extends Dexie{
     this.version(4).stores({settlementHistory:'id,settlementId,createdAt'});
     this.version(5).stores({netWorthBaselines:'id'});
     this.version(6).stores({bankReconciliations:'id,accountId,periodEnd'});
-    // Keep v7 compatible with the current main branch's category schema.
+    // Version 7 adds the legacy parentCategoryId index used by the main branch.
     this.version(7).stores({categories:'id,flow,parentCategoryId,sortOrder,isArchived'});
+    // Version 8 moves legacy child-category rows into the dedicated subcategory store.
     this.version(8).stores({
       subcategories:'id,categoryId,sortOrder,isArchived',
       categoryMatchRules:'id,keyword,categoryId,subcategoryId,priority,isArchived',
       itemProfiles:'id,name,categoryId,subcategoryId,accountId,personId,useCount,lastUsedAt',
       transactions:'id,accountId,categoryId,subcategoryId,personId,itemProfileId,flow,dateTime,syncAccountId'
     }).upgrade(async tx=>{
-      const categories = await tx.table('categories').toArray() as (Category & {parentCategoryId?:string})[];
+      const categories = await tx.table('categories').toArray();
       const children = categories.filter(c=>c.parentCategoryId);
       for (const child of children) {
         const parent = categories.find(c=>c.id===child.parentCategoryId);
         if (!parent) continue;
         const subcategoryId = child.id;
         await tx.table('subcategories').put({
-          id: subcategoryId,
-          categoryId: parent.id,
-          name: child.name,
-          sortOrder: child.sortOrder,
-          isArchived: child.isArchived
+          id:subcategoryId,
+          categoryId:parent.id,
+          name:child.name,
+          sortOrder:child.sortOrder,
+          isArchived:child.isArchived
         } satisfies Subcategory);
-        // Preserve historical transactions while moving their category to the parent.
         await tx.table('transactions').where('categoryId').equals(child.id).modify({
-          categoryId: parent.id,
+          categoryId:parent.id,
           subcategoryId
         });
         await tx.table('itemProfiles').where('categoryId').equals(child.id).modify({
-          categoryId: parent.id,
+          categoryId:parent.id,
           subcategoryId
         });
-        // Keep the old row archived so references outside this migration remain resolvable.
+        // Keep the old category row archived to avoid breaking other historical references.
         await tx.table('categories').update(child.id,{isArchived:true});
       }
     });
