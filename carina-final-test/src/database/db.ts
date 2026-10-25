@@ -58,6 +58,10 @@ export class CarinaDatabase extends Dexie{
           categoryId:parent.id,
           subcategoryId
         });
+        // Settlement differences store a category ID too; preserve that reference.
+        await tx.table('settlements').where('differenceCategoryId').equals(child.id).modify({
+          differenceCategoryId:parent.id
+        });
         // Keep the old category row archived to avoid breaking other historical references.
         await tx.table('categories').update(child.id,{isArchived:true});
       }
