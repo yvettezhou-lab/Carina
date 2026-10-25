@@ -22,6 +22,8 @@ export function Settings() {
   const [categoryEditorOpen,setCategoryEditorOpen]=useState(false);
   const [categoryFlow,setCategoryFlow]=useState<'expense'|'income'>('expense');
   const [categoryName,setCategoryName]=useState('');
+  const [categoryParentId,setCategoryParentId]=useState('');
+  const [categoryKeywords,setCategoryKeywords]=useState('');
   const [peopleExpanded,setPeopleExpanded]=useState(false);
 
   async function refresh(){
@@ -148,6 +150,8 @@ async function moveAccount(accountId: string, direction: -1 | 1) {
   function addCategory(){
     setCategoryFlow('expense');
     setCategoryName('');
+    setCategoryParentId('');
+    setCategoryKeywords('');
     setCategoryEditorOpen(true);
   }
 
@@ -159,10 +163,14 @@ async function moveAccount(accountId: string, direction: -1 | 1) {
       name,
       flow:categoryFlow,
       sortOrder:Date.now(),
-      isArchived:false
+      isArchived:false,
+      ...(categoryParentId ? { parentCategoryId: categoryParentId } : {}),
+      ...(categoryKeywords.trim() ? { matchKeywords: categoryKeywords.split(/[，,、\n]/).map(x=>x.trim()).filter(Boolean) } : {})
     });
     setCategoryEditorOpen(false);
     setCategoryName('');
+    setCategoryParentId('');
+    setCategoryKeywords('');
     await refresh();
   }
   async function addPerson(){
@@ -516,7 +524,7 @@ return <section>
 
       </>}
       {section==='categories'&&<><button type="button" onClick={()=>navigate('/settings')} style={{border:0,background:'transparent',color:'inherit',padding:'8px 0 16px'}}>← Settings</button><div className="atelier-section"><div className="atelier-title"><Tags size={17}/><div><span>CATEGORIES</span><small>Organize income and expenses</small></div></div><button type="button" onClick={()=>void sortCategoriesByFrequency()} style={{margin:"8px 0 14px",padding:"8px 12px",border:"1px solid rgba(120,100,70,.28)",background:"transparent",color:"inherit",font:"inherit"}}>按最近90天使用频率排序</button><small style={{display:"block",opacity:.6,marginBottom:12}}>仅手动执行时更新，之后顺序保持不变；同频分类保留原顺序。</small>
-        {categories.map((x,i)=><div className="atelier-row" key={x.id} style={{display:"flex",alignItems:"center",gap:10}}><span style={{flex:1}}>{x.name}</span><em>{x.flow==='expense'?'Expense':'Income'}</em><button type="button" aria-label={`Move ${x.name} up`} disabled={i===0} onClick={()=>void moveCategory(x.id,-1)} style={{border:0,background:"transparent",color:"inherit",padding:"8px 4px",opacity:i===0?.25:.7}}>↑</button><button type="button" aria-label={`Move ${x.name} down`} disabled={i===categories.length-1} onClick={()=>void moveCategory(x.id,1)} style={{border:0,background:"transparent",color:"inherit",padding:"8px 4px",opacity:i===categories.length-1?.25:.7}}>↓</button></div>)}
+        {categories.map((x,i)=><div className="atelier-row" key={x.id} style={{display:"flex",alignItems:"center",gap:10}}><span style={{flex:1}}>{x.parentCategoryId ? `${categories.find(p=>p.id===x.parentCategoryId)?.name ?? '分类'} › ${x.name}` : x.name}</span><em>{x.flow==='expense'?'Expense':'Income'}</em><button type="button" aria-label={`Move ${x.name} up`} disabled={i===0} onClick={()=>void moveCategory(x.id,-1)} style={{border:0,background:"transparent",color:"inherit",padding:"8px 4px",opacity:i===0?.25:.7}}>↑</button><button type="button" aria-label={`Move ${x.name} down`} disabled={i===categories.length-1} onClick={()=>void moveCategory(x.id,1)} style={{border:0,background:"transparent",color:"inherit",padding:"8px 4px",opacity:i===categories.length-1?.25:.7}}>↓</button></div>)}
       <button className="atelier-add" onClick={addCategory}><Plus size={15}/> Add category</button>
       {categoryEditorOpen && (
         <div style={{
@@ -533,17 +541,32 @@ return <section>
           }}>
             <div style={{fontSize:"18px",fontWeight:600,marginBottom:"18px"}}>Add category</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px",marginBottom:"16px"}}>
-              <button type="button" onClick={()=>setCategoryFlow('expense')} style={{
+              <button type="button" onClick={()=>{setCategoryFlow('expense');setCategoryParentId('')}} style={{
                 padding:"10px", border:"1px solid rgba(100,80,55,.28)",
                 background:categoryFlow==='expense' ? "#111827" : "transparent",
                 color:categoryFlow==='expense' ? "#fff" : "inherit", font:"inherit"
               }}>Expense</button>
-              <button type="button" onClick={()=>setCategoryFlow('income')} style={{
+              <button type="button" onClick={()=>{setCategoryFlow('income');setCategoryParentId('')}} style={{
                 padding:"10px", border:"1px solid rgba(100,80,55,.28)",
                 background:categoryFlow==='income' ? "#111827" : "transparent",
                 color:categoryFlow==='income' ? "#fff" : "inherit", font:"inherit"
               }}>Income</button>
             </div>
+            <select
+              value={categoryParentId}
+              onChange={e=>setCategoryParentId(e.target.value)}
+              aria-label="Parent category (optional)"
+              style={{width:"100%",boxSizing:"border-box",padding:"12px 13px",border:"1px solid rgba(100,80,55,.28)",background:"transparent",color:"inherit",font:"inherit",marginBottom:"12px"}}
+            >
+              <option value="">一级分类（不设父分类）</option>
+              {categories.filter(x=>x.flow===categoryFlow&&!x.parentCategoryId).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}
+            </select>
+            <input
+              value={categoryKeywords}
+              onChange={e=>setCategoryKeywords(e.target.value)}
+              placeholder="自动匹配关键词（可选，逗号分隔）"
+              style={{width:"100%",boxSizing:"border-box",padding:"12px 13px",border:"1px solid rgba(100,80,55,.28)",background:"transparent",color:"inherit",font:"inherit",marginBottom:"12px"}}
+            />
             <input
               autoFocus
               value={categoryName}
