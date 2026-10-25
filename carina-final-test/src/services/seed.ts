@@ -28,7 +28,7 @@ export async function ensureSeedData() {
   }
 
   // Idempotent upgrade: retain existing category IDs and only add missing food children.
-  const food = await db.categories.where('name').equals('餐饮').first();
+  const food = await db.categories.filter(c => c.name === '餐饮').first();
   if (!food || food.flow !== 'expense') return;
 
   const existing = await db.categories.toArray();
