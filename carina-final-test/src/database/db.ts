@@ -26,6 +26,7 @@ export class CarinaDatabase extends Dexie{
     this.version(4).stores({settlementHistory:'id,settlementId,createdAt'});
     this.version(5).stores({netWorthBaselines:'id'});
     this.version(6).stores({bankReconciliations:'id,accountId,periodEnd'});
+    this.version(7).stores({categories:'id,flow,parentCategoryId,sortOrder,isArchived'});
   }
 }
 export const db=new CarinaDatabase();
