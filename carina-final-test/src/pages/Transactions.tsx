@@ -38,16 +38,18 @@ export function Transactions() {
   const [personFilter, setPersonFilter] = useState('');
 
   async function refresh() {
-    const [tx, transfers, accountRows, categoryRows, personRows] = await Promise.all([
+    const [tx, transfers, accountRows, categoryRows, personRows, subcategoryRows] = await Promise.all([
       db.transactions.orderBy('dateTime').reverse().toArray(),
       db.transfers.orderBy('dateTime').reverse().toArray(),
       db.accounts.toArray(),
       db.categories.toArray(),
-      db.people.toArray()
+      db.people.toArray(),
+      db.subcategories.toArray()
     ]);
 
     const accountNames = Object.fromEntries(accountRows.map(x => [x.id, x.name]));
     const categoryNames = Object.fromEntries(categoryRows.map(x => [x.id, x.name]));
+    const subcategoryNames = Object.fromEntries(subcategoryRows.map(x => [x.id, x.name]));
 
     const grouped = new Map<string, Transaction[]>();
     const legacyPeople = new Map<string, Set<string>>();
@@ -83,7 +85,7 @@ export function Transactions() {
         description: first.description,
         amount: rows.reduce((sum, row) => sum + row.amount, 0),
         flow: first.flow,
-        category: categoryNames[first.categoryId] ?? 'Uncategorized',
+        category: `${categoryNames[first.categoryId] ?? 'Uncategorized'}${first.subcategoryId && subcategoryNames[first.subcategoryId] ? ` · ${subcategoryNames[first.subcategoryId]}` : ''}`,
         categoryId: first.categoryId,
         account: accountNames[first.accountId],
         accountId: first.accountId,
@@ -216,7 +218,7 @@ export function Transactions() {
             <input
               value={keyword}
               onChange={e => setKeyword(e.target.value)}
-              placeholder="Description, category or account"
+              placeholder="Description, category, subcategory or account"
             />
           </label>
 

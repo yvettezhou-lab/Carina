@@ -1,12 +1,6 @@
 import { db } from '@/database/db';
 import { uid } from '@/utils/id';
-
-const FOOD_SUBCATEGORIES = [
-  { name: '外食', sortOrder: 0, matchKeywords: ['外卖', '外食', '餐厅', '饭店', '早餐', '午饭', '午餐', '晚饭', '晚餐', '米线', '面馆', '快餐', '食堂', '汉堡', '披萨'] },
-  { name: '买菜', sortOrder: 1, matchKeywords: ['买菜', '菜市场', '蔬菜', '生鲜', '肉菜'] },
-  { name: '水果零食', sortOrder: 2, matchKeywords: ['水果', '零食', '坚果', '薯片', '饼干', '糖果', '果干'] },
-  { name: '学校餐费', sortOrder: 3, matchKeywords: ['学校餐费', '学生餐费', '校园餐费', '学校饭卡', '饭卡充值'] }
-] as const;
+import { ensureDefaultSubcategories } from '@/services/categoryTaxonomy';
 
 export async function ensureSeedData() {
   if (await db.accounts.count() === 0) {
@@ -27,27 +21,7 @@ export async function ensureSeedData() {
     ]);
   }
 
-  // Idempotent upgrade: retain existing category IDs and only add missing food children.
-  const food = await db.categories.filter(c => c.name === '餐饮').first();
-  if (!food || food.flow !== 'expense') return;
-
-  const existing = await db.categories.toArray();
-  for (const child of FOOD_SUBCATEGORIES) {
-    const found = existing.find(c => c.parentCategoryId === food.id && c.name === child.name);
-    if (found) {
-      const current = found.matchKeywords ?? [];
-      const merged = [...new Set([...current, ...child.matchKeywords])];
-      if (merged.length !== current.length) await db.categories.update(found.id, { matchKeywords: merged });
-      continue;
-    }
-    await db.categories.add({
-      id: uid(),
-      name: child.name,
-      flow: 'expense',
-      sortOrder: child.sortOrder,
-      isArchived: false,
-      parentCategoryId: food.id,
-      matchKeywords: [...child.matchKeywords]
-    });
-  }
+  // Seed optional subcategories in their own store; never create pseudo-parent categories.
+  const categories = await db.categories.filter(c => !c.isArchived).sortBy('sortOrder');
+  await ensureDefaultSubcategories(categories);
 }
