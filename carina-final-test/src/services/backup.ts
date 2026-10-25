@@ -1,5 +1,5 @@
 import { db } from '@/database/db';
-import type { Category, Subcategory, Transaction, ItemProfile } from '@/models';
+import type { Category, Subcategory, Transaction, ItemProfile, Settlement } from '@/models';
 
 export async function exportBackup() {
   const payload = {
@@ -27,23 +27,24 @@ export async function importBackup(text: string) {
   const subcategories: Subcategory[] = [...(data.subcategories ?? [])];
   const transactions: Transaction[] = [...(data.transactions ?? [])];
   const itemProfiles: ItemProfile[] = [...(data.itemProfiles ?? [])];
-  const knownSubcategories = new Set(subcategories.map(s => s.id));
+  const settlements: Settlement[] = [...(data.settlements ?? [])];
 
   for (const child of categories) {
     if (!child.parentCategoryId) continue;
     const parent = categories.find(c => c.id === child.parentCategoryId);
     if (!parent) continue;
     const subcategoryId = child.id;
-    if (!knownSubcategories.has(subcategoryId)) {
-      subcategories.push({
-        id:subcategoryId,
-        categoryId:parent.id,
-        name:child.name,
-        sortOrder:child.sortOrder,
-        isArchived:child.isArchived
-      });
-      knownSubcategories.add(subcategoryId);
-    }
+    const normalizedSubcategory: Subcategory = {
+      id: subcategoryId,
+      categoryId: parent.id,
+      name: child.name,
+      sortOrder: child.sortOrder,
+      isArchived: child.isArchived
+    };
+    const existingIndex = subcategories.findIndex(s => s.id === subcategoryId);
+    if (existingIndex >= 0) subcategories[existingIndex] = normalizedSubcategory;
+    else subcategories.push(normalizedSubcategory);
+
     for (const tx of transactions) {
       if (tx.categoryId === child.id) {
         tx.categoryId = parent.id;
@@ -55,6 +56,9 @@ export async function importBackup(text: string) {
         profile.categoryId = parent.id;
         profile.subcategoryId = subcategoryId;
       }
+    }
+    for (const settlement of settlements) {
+      if (settlement.differenceCategoryId === child.id) settlement.differenceCategoryId = parent.id;
     }
     child.isArchived = true;
   }
@@ -77,6 +81,6 @@ export async function importBackup(text: string) {
     await db.itemProfiles.bulkAdd(itemProfiles);
     await db.transactions.bulkAdd(transactions);
     await db.transfers.bulkAdd(data.transfers ?? []);
-    await db.settlements.bulkAdd(data.settlements ?? []);
+    await db.settlements.bulkAdd(settlements);
   });
 }
