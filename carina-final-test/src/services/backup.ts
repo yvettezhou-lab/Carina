@@ -22,26 +22,25 @@ export async function importBackup(text: string) {
   const data = JSON.parse(text);
   if (data?.version !== 1) throw new Error('不支持的备份版本');
 
-  // Older backups may contain child categories directly in categories and have no
-  // subcategory arrays. Normalize those records before replacing the local data.
-  const categories: Category[] = (data.categories ?? []).map((c: Category & {parentCategoryId?: string}) => ({...c}));
+  // Normalize legacy child categories before replacing local data.
+  const categories: Category[] = (data.categories ?? []).map((c: Category) => ({...c}));
   const subcategories: Subcategory[] = [...(data.subcategories ?? [])];
   const transactions: Transaction[] = [...(data.transactions ?? [])];
   const itemProfiles: ItemProfile[] = [...(data.itemProfiles ?? [])];
   const knownSubcategories = new Set(subcategories.map(s => s.id));
 
-  for (const child of categories as (Category & {parentCategoryId?: string})[]) {
+  for (const child of categories) {
     if (!child.parentCategoryId) continue;
     const parent = categories.find(c => c.id === child.parentCategoryId);
     if (!parent) continue;
     const subcategoryId = child.id;
     if (!knownSubcategories.has(subcategoryId)) {
       subcategories.push({
-        id: subcategoryId,
-        categoryId: parent.id,
-        name: child.name,
-        sortOrder: child.sortOrder,
-        isArchived: child.isArchived
+        id:subcategoryId,
+        categoryId:parent.id,
+        name:child.name,
+        sortOrder:child.sortOrder,
+        isArchived:child.isArchived
       });
       knownSubcategories.add(subcategoryId);
     }
