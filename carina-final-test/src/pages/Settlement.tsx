@@ -2,7 +2,7 @@ import './Settlement.css';
 import { useEffect, useMemo, useState } from 'react';
 import { db } from '@/database/db';
 import type { Account, Person, Settlement as SettlementRecord, SettlementHistory, Transaction } from '@/models';
-import { correctSettlement, getPendingAdvances, settleAdvances } from '@/services/settlements';
+import { correctSettlement, getPendingAdvances, settleAdvances, undoSettlement } from '@/services/settlements';
 
 type HistoryStatus = 'all' | 'pending' | 'settled';
 
@@ -116,6 +116,21 @@ export function Settlement() {
     }
   };
 
+  const handleUndoSettlement = async (settlement: SettlementRecord) => {
+    const confirmed = window.confirm('撤销这笔结算？\n\n系统会删除本次结算生成的收款本金和差额流水，并将原始代付记录恢复为「待收回」。原始代付金额和付款账户不会改变。之后可以重新选择记录并结算。');
+    if (!confirmed) return;
+    try {
+      await undoSettlement(settlement.id);
+      setEditingSettlementId('');
+      setCorrectionMessage('');
+      await refreshHistory();
+      setAdvances(await getPendingAdvances());
+      setMessage('结算已撤销，原始代付已恢复为待收回');
+    } catch (error) {
+      setCorrectionMessage(error instanceof Error ? error.message : '撤销结算失败');
+    }
+  };
+
   const toggle = (id: string) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
@@ -220,6 +235,7 @@ export function Settlement() {
                     {settlement && <div className="settlement-history-detail"><span>实际收回：¥{settlement.receivedAmount.toFixed(2)}</span><span>差额：{settlement.difference > 0 ? '+' : ''}¥{settlement.difference.toFixed(2)}</span></div>}
                     {settlement && <>
                       <button type="button" className="settlement-history-edit" onClick={() => { setEditingSettlementId(editingSettlementId === settlement.id ? '' : settlement.id); setCorrectionAccountId(settlement.accountId); setCorrectionAmount(String(settlement.receivedAmount)); setCorrectionDate(formatDateInput(settlement.dateTime)); setCorrectionReason(''); setCorrectionMessage(''); }}>更正结算信息</button>
+                      <button type="button" className="settlement-history-edit" onClick={() => void handleUndoSettlement(settlement)}>撤销结算，恢复待收回</button>
                       {editingSettlementId === settlement.id && <div className="settlement-correction-editor">
                         <label className="settlement-field"><span>正确的收款账户</span><select value={correctionAccountId} onChange={e => setCorrectionAccountId(e.target.value)}><option value="">请选择账户</option>{accounts.filter(a => !a.isArchived).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
                         <label className="settlement-field"><span>实际收回金额</span><input inputMode="decimal" value={correctionAmount} onChange={e => setCorrectionAmount(e.target.value.replace(/[^\\d.+-]/g, ''))} /></label>
