@@ -262,3 +262,39 @@ export async function correctSettlement(i:{
     }
   );
 }
+
+
+/**
+ * Undo a settlement and return its original advances to the pending state.
+ * Settlement-generated cash/statistical entries are removed atomically; the
+ * original advance rows and their amounts/accounts are preserved.
+ */
+export async function undoSettlement(settlementId:string){
+  return db.transaction(
+    'rw',db.transactions,db.settlements,db.settlementHistory,
+    async()=>{
+      const settlement=await db.settlements.get(settlementId);
+      if(!settlement) throw new Error('找不到这笔结算记录');
+      const originals=await db.transactions.bulkGet(settlement.transactionIds);
+      const valid=originals.filter((t):t is Transaction=>!!t);
+      if(valid.length!==settlement.transactionIds.length||valid.some(t=>t.kind!=='advance'||t.settlementId!==settlement.id||t.advanceStatus!=='settled')){
+        throw new Error('原始代付记录不完整或状态异常，未删除任何记录');
+      }
+      const linked=await db.transactions.where('settlementId').equals(settlement.id).toArray();
+      const originalIds=new Set(settlement.transactionIds);
+      const generated=linked.filter(t=>!originalIds.has(t.id));
+      // All generated settlement entries are removed together with the settlement.
+      await db.transactions.bulkDelete(generated.map(t=>t.id));
+      for(const original of valid){
+        await db.transactions.update(original.id,{
+          advanceStatus:'pending',
+          settlementId:undefined,
+          updatedAt:Date.now(),
+        });
+      }
+      await db.settlementHistory.where('settlementId').equals(settlement.id).delete();
+      await db.settlements.delete(settlement.id);
+      return {restoredCount:valid.length,deletedEntryCount:generated.length};
+    }
+  );
+}
