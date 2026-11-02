@@ -51,12 +51,28 @@ export function Transactions() {
     const categoryNames = Object.fromEntries(categoryRows.map(x => [x.id, x.name]));
     const subcategoryNames = Object.fromEntries(subcategoryRows.map(x => [x.id, x.name]));
 
-    // Only explicitly linked split transactions may be combined.
-    // Never infer a shared transaction from matching descriptions, timestamps,
-    // accounts, categories, or people: independent entries can share all of them.
+    // Explicit groupId is authoritative. For legacy split rows created before
+    // groupId existed, only group rows that share the exact creation timestamp
+    // as well as the full transaction signature and have distinct people.
+    // The createdAt constraint avoids merging later independent same-name entries.
     const grouped = new Map<string, Transaction[]>();
+    const legacyPeople = new Map<string, Set<string>>();
+    const legacyKeyOf = (t: Transaction) =>
+      `legacy:${t.createdAt}|${t.dateTime}|${t.accountId}|${t.categoryId}|${t.flow}|${t.kind ?? ''}|${t.advanceStatus ?? ''}|${t.description.trim()}`;
     for (const t of tx) {
-      const key = t.groupId ? `group:${t.groupId}` : `single:${t.id}`;
+      if (!t.personId || t.groupId) continue;
+      const key = legacyKeyOf(t);
+      const peopleForKey = legacyPeople.get(key) ?? new Set<string>();
+      peopleForKey.add(t.personId);
+      legacyPeople.set(key, peopleForKey);
+    }
+    for (const t of tx) {
+      const legacyKey = legacyKeyOf(t);
+      const key = t.groupId
+        ? `group:${t.groupId}`
+        : t.personId && (legacyPeople.get(legacyKey)?.size ?? 0) > 1
+          ? legacyKey
+          : `single:${t.id}`;
       const rows = grouped.get(key) ?? [];
       rows.push(t);
       grouped.set(key, rows);
