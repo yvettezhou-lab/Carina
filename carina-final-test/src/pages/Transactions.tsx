@@ -4,6 +4,7 @@ import { db } from '@/database/db';
 import type { Account, Category, Person, Transaction, Transfer } from '@/models';
 import { deleteTransaction } from '@/services/transactions';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { DatePicker } from '@/components/DatePicker';
 
 type LedgerItem = {
   id: string;
@@ -247,11 +248,11 @@ export function Transactions() {
           <div className="ledger-filter-grid">
             <label className="ledger-filter-field">
               <span>From</span>
-              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+              <DatePicker value={dateFrom} onChange={setDateFrom} placeholder="Any date" className="ledger-date-picker" />
             </label>
             <label className="ledger-filter-field">
               <span>To</span>
-              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+              <DatePicker value={dateTo} onChange={setDateTo} placeholder="Any date" className="ledger-date-picker" />
             </label>
           </div>
 
