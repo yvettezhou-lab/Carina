@@ -156,6 +156,11 @@ export function Transactions() {
     });
   }, [items, dateFrom, dateTo, flowFilter, categoryFilter, accountFilter, personFilter, keyword]);
 
+  const filteredExpenseTotal = filteredItems.reduce(
+    (sum, item) => sum + (item.kind === 'transaction' && item.flow === 'expense' ? item.amount : 0),
+    0
+  );
+
   const activeFilterCount = [
     dateFrom,
     dateTo,
@@ -199,6 +204,11 @@ export function Transactions() {
           <div className="brand-subtitle">EVERY ENTRY MATTERS</div>
         </div>
       </header>
+
+      <div className="ledger-expense-summary">
+        <span>FILTERED EXPENSE TOTAL</span>
+        <strong>¥{filteredExpenseTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+      </div>
 
       <div className="ledger-filter-toolbar">
         <button type="button" className="ledger-filter-button" onClick={() => setShowFilters(v => !v)}>
