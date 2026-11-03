@@ -252,3 +252,10 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 @media(max-width:600px){.category-picker-backdrop{align-items:flex-end;padding:0}.category-picker-panel{width:100%;max-height:min(68vh,560px);border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom)}.category-picker-columns{min-height:240px}.category-picker-main-list button,.category-picker-sub-list button{min-height:50px;padding:12px 10px}}
 
 
+
+
+/* Keep Ledger filter controls inside the panel on narrow mobile screens. */
+.ledger-filter-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-width:0}
+.ledger-filter-field{min-width:0;width:100%;box-sizing:border-box}
+.ledger-filter-field input,.ledger-filter-field select{display:block;min-width:0;max-width:100%;width:100%;box-sizing:border-box}
+.ledger-filter-field input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;width:100%;max-width:100%;padding-left:8px;padding-right:8px;font-size:12px}
