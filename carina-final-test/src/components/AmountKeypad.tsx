@@ -181,14 +181,11 @@ export const AmountKeypad: React.FC<AmountKeypadProps> = ({ value, onChange }) =
                   key={key}
                   type="button"
                   className={extraClass}
+                  style={{ touchAction: 'manipulation' }}
                   onPointerDown={(event) => {
-                    if (key === 'done') {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      setOpen(false);
-                    }
-                  }}
-                  onClick={(event) => {
+                    // Handle the tap immediately. Waiting for the synthesized click can
+                    // drop rapid consecutive taps in iOS standalone PWAs.
+                    event.preventDefault();
                     event.stopPropagation();
                     if (key === 'done') {
                       setOpen(false);
