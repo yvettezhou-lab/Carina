@@ -240,7 +240,7 @@ export function Reflection() {
     : undefined;
 
   return (
-    <section>
+    <section className="reflection-page">
       <div className="reflection-header-controls">
         <header className="hero-head inner-head">
           <div><div className="script-title">Reflection</div><div className="brand-subtitle">{period === 'year' ? 'A YEAR IN REVIEW' : 'A MONTH IN REVIEW'}</div></div>
