@@ -178,13 +178,13 @@ export function Reflection() {
     }
     if (mode === 'category') {
       const rows = period === 'year'
-        ? filterReflectionAnnualTransactions(personalTransactions, year, 'category', selectedId)
-        : filterReflectionTransactions(personalTransactions, year, month, 'category', selectedId);
+        ? filterReflectionAnnualTransactions(personalTransactions, year, 'category', selectedId, accounts)
+        : filterReflectionTransactions(personalTransactions, year, month, 'category', selectedId, accounts);
       return sortTransactionsNewestFirst(collapseForDrillDown(rows));
     }
     const rows = period === 'year'
-      ? filterReflectionAnnualTransactions(personalTransactions, year, 'account', selectedId)
-      : filterReflectionTransactions(personalTransactions, year, month, 'account', selectedId);
+      ? filterReflectionAnnualTransactions(personalTransactions, year, 'account', selectedId, accounts)
+      : filterReflectionTransactions(personalTransactions, year, month, 'account', selectedId, accounts);
     return sortTransactionsNewestFirst(collapseForDrillDown(rows));
   }, [personalTransactions, year, month, period, mode, selectedId]);
 
