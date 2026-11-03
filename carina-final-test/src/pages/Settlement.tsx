@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { db } from '@/database/db';
 import type { Account, Person, Settlement as SettlementRecord, Transaction } from '@/models';
 import { getPendingAdvances, settleAdvances, undoSettlement } from '@/services/settlements';
+import { DatePicker } from '@/components/DatePicker';
 
 type HistoryStatus = 'all' | 'pending' | 'settled';
 
@@ -162,7 +163,7 @@ export function Settlement() {
             <div className="settlement-section-title">收款信息</div>
             <div className="settlement-field-grid">
               <label className="settlement-field"><span>收款账户</span><select value={accountId} onChange={e => setAccountId(e.target.value)}><option value="">请选择账户</option>{accounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}</select></label>
-              <label className="settlement-field"><span>实际收回日期</span><input type="date" value={settlementDate} onChange={e => setSettlementDate(e.target.value)} /></label>
+              <label className="settlement-field"><span>实际收回日期</span><DatePicker value={settlementDate} onChange={setSettlementDate} /></label>
             </div>
             <label className="settlement-field settlement-amount-field"><span>实际收回金额</span><input inputMode="decimal" value={receivedAmount} onChange={e => setReceivedAmount(e.target.value.replace(/[^\d.+-]/g, ''))} placeholder="0.00" /></label>
             <div className="settlement-summary">
@@ -184,8 +185,8 @@ export function Settlement() {
           <div className="settlement-history-filters">
             <label className="settlement-field"><span>人物</span><select value={historyPersonId} onChange={e => setHistoryPersonId(e.target.value)}><option value="all">全部人物</option>{people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
             <label className="settlement-field"><span>状态</span><select value={historyStatus} onChange={e => setHistoryStatus(e.target.value as HistoryStatus)}><option value="all">全部状态</option><option value="pending">待收回</option><option value="settled">已结算</option></select></label>
-            <label className="settlement-field"><span>开始日期</span><input type="date" value={historyStart} onChange={e => setHistoryStart(e.target.value)} /></label>
-            <label className="settlement-field"><span>结束日期</span><input type="date" value={historyEnd} onChange={e => setHistoryEnd(e.target.value)} /></label>
+            <label className="settlement-field"><span>开始日期</span><DatePicker value={historyStart} onChange={setHistoryStart} placeholder="不限" className="settlement-date-picker" /></label>
+            <label className="settlement-field"><span>结束日期</span><DatePicker value={historyEnd} onChange={setHistoryEnd} placeholder="不限" className="settlement-date-picker" /></label>
           </div>
           {history.length === 0 ? <div className="settlement-empty">没有符合筛选条件的代付记录。</div> : (
             <div className="settlement-history-list">
