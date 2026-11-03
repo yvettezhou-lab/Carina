@@ -254,29 +254,24 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 
 
 
-/* Keep Ledger filter controls inside the panel on narrow mobile screens. */
-.ledger-filter-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-width:0}
-.ledger-filter-field{min-width:0;width:100%;box-sizing:border-box}
-.ledger-filter-field input,.ledger-filter-field select{display:block;min-width:0;max-width:100%;width:100%;box-sizing:border-box}
-.ledger-filter-field input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;width:100%;max-width:100%;padding-left:8px;padding-right:8px;font-size:12px}
 
-/* Normalize every Ledger filter control to the same compact height, including iOS date inputs. */
-.ledger-filter-panel .ledger-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:10px;min-width:0}
-.ledger-filter-panel .ledger-filter-field{display:flex;flex-direction:column;gap:6px;min-width:0;width:100%;margin:0;box-sizing:border-box}
-.ledger-filter-panel .ledger-filter-field input,
-.ledger-filter-panel .ledger-filter-field select{
-  display:block;width:100%;min-width:0;max-width:100%;height:44px;min-height:44px;max-height:44px;
-  box-sizing:border-box;margin:0;padding:0 10px;border:1px solid var(--line);border-radius:2px;
-  background:rgba(255,252,244,.8);color:var(--ink);font:400 14px/normal -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
-}
-.ledger-filter-panel .ledger-filter-field input[type="date"]{
-  -webkit-appearance:none;appearance:none;display:flex;align-items:center;
-  padding:0 8px;font-size:13px;line-height:44px;text-align:left;
-}
-.ledger-filter-panel .ledger-filter-field input[type="date"]::-webkit-date-and-time-value{margin:0;text-align:left;line-height:normal}
-.ledger-filter-panel .ledger-filter-field input[type="date"]::-webkit-calendar-picker-indicator{margin:0;padding:0;flex:none}
-@media(max-width:430px){
-  .ledger-filter-panel .ledger-filter-grid{gap:8px}
-  .ledger-filter-panel .ledger-filter-field input,.ledger-filter-panel .ledger-filter-field select{padding-left:8px;padding-right:8px;font-size:13px}
-  .ledger-filter-panel .ledger-filter-field input[type="date"]{font-size:12px;padding-left:6px;padding-right:6px}
-}
+/* Shared calendar picker used by Quick Entry, Ledger filters and advance settlement. */
+.date-picker-wrap{position:relative;width:100%;min-width:0}
+.date-picker-trigger{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;height:44px;min-height:44px;max-height:44px;box-sizing:border-box;margin:0;padding:0 10px;border:1px solid var(--line);border-radius:2px;background:rgba(255,252,244,.8);color:var(--ink);font:400 14px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;text-align:left}
+.date-picker-trigger span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.date-picker-trigger svg{flex:none;color:var(--muted)}
+.date-picker-popover{position:absolute;z-index:10030;top:calc(100% + 6px);left:0;width:min(300px,calc(100vw - 48px));padding:12px;border:1px solid var(--line);border-radius:8px;background:#fbf7ee;box-shadow:0 12px 32px rgba(23,34,53,.18)}
+.date-picker-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.date-picker-head button{display:grid;place-items:center;width:32px;height:32px;border:0;border-radius:5px;background:transparent;color:var(--ink)}
+.date-picker-head strong{font-family:"Cormorant Garamond",Georgia,serif;font-size:18px;font-weight:500}
+.date-weekdays,.date-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}
+.date-weekdays{margin-bottom:5px;color:var(--muted);font-size:11px}
+.date-weekdays span{display:grid;place-items:center;height:26px}
+.date-grid>span,.date-grid>button{display:grid;place-items:center;min-width:0;height:34px;border:0;border-radius:5px;background:transparent;color:var(--ink);font:inherit;font-size:13px}
+.date-grid>button.selected{background:var(--ink);color:#fff}
+.date-grid>button:active{background:rgba(168,135,74,.2)}
+.ledger-filter-panel .ledger-date-picker .date-picker-trigger{height:44px;min-height:44px;max-height:44px;padding:0 8px;font-size:12px}
+.ledger-filter-panel .ledger-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:10px;min-width:0}
+.ledger-filter-panel .ledger-filter-field{min-width:0;width:100%;margin:0;box-sizing:border-box}
+.ledger-filter-panel .ledger-filter-field .date-picker-wrap{width:100%;min-width:0}
+@media(max-width:430px){.ledger-filter-panel .ledger-filter-grid{gap:8px}.ledger-filter-panel .ledger-date-picker .date-picker-trigger{padding:0 6px;font-size:11px}}
