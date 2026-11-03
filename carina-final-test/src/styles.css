@@ -259,3 +259,24 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 .ledger-filter-field{min-width:0;width:100%;box-sizing:border-box}
 .ledger-filter-field input,.ledger-filter-field select{display:block;min-width:0;max-width:100%;width:100%;box-sizing:border-box}
 .ledger-filter-field input[type="date"]{-webkit-appearance:none;appearance:none;min-width:0;width:100%;max-width:100%;padding-left:8px;padding-right:8px;font-size:12px}
+
+/* Normalize every Ledger filter control to the same compact height, including iOS date inputs. */
+.ledger-filter-panel .ledger-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:10px;min-width:0}
+.ledger-filter-panel .ledger-filter-field{display:flex;flex-direction:column;gap:6px;min-width:0;width:100%;margin:0;box-sizing:border-box}
+.ledger-filter-panel .ledger-filter-field input,
+.ledger-filter-panel .ledger-filter-field select{
+  display:block;width:100%;min-width:0;max-width:100%;height:44px;min-height:44px;max-height:44px;
+  box-sizing:border-box;margin:0;padding:0 10px;border:1px solid var(--line);border-radius:2px;
+  background:rgba(255,252,244,.8);color:var(--ink);font:400 14px/normal -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+.ledger-filter-panel .ledger-filter-field input[type="date"]{
+  -webkit-appearance:none;appearance:none;display:flex;align-items:center;
+  padding:0 8px;font-size:13px;line-height:44px;text-align:left;
+}
+.ledger-filter-panel .ledger-filter-field input[type="date"]::-webkit-date-and-time-value{margin:0;text-align:left;line-height:normal}
+.ledger-filter-panel .ledger-filter-field input[type="date"]::-webkit-calendar-picker-indicator{margin:0;padding:0;flex:none}
+@media(max-width:430px){
+  .ledger-filter-panel .ledger-filter-grid{gap:8px}
+  .ledger-filter-panel .ledger-filter-field input,.ledger-filter-panel .ledger-filter-field select{padding-left:8px;padding-right:8px;font-size:13px}
+  .ledger-filter-panel .ledger-filter-field input[type="date"]{font-size:12px;padding-left:6px;padding-right:6px}
+}
