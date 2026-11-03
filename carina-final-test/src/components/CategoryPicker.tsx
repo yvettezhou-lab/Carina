@@ -33,11 +33,21 @@ export function CategoryPicker({ categories, subcategories, categoryId, subcateg
     if (open) setActiveId(categories.find(item => item.id === categoryId)?.parentCategoryId ?? categoryId);
   }, [open, categoryId]);
 
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open]);
+
   const choose = (choice?: Choice) => {
     if (!activeCategory) return;
     if (!choice) onChange(activeCategory.id, '');
     else if (choice.kind === 'category') onChange(choice.id, '');
     else onChange(activeCategory.id, choice.id);
+    // A choice is a completed action: commit it and dismiss the picker immediately.
     setOpen(false);
   };
 
@@ -46,8 +56,8 @@ export function CategoryPicker({ categories, subcategories, categoryId, subcateg
       <span>{display}</span><ChevronDown size={18}/>
     </button>
     {open && <div className="category-picker-backdrop" onClick={() => setOpen(false)}>
-      <div className="category-picker-panel" role="dialog" aria-label="选择分类" onClick={event => event.stopPropagation()}>
-        <div className="category-picker-heading"><strong>选择分类</strong><button type="button" onClick={() => setOpen(false)}>完成</button></div>
+      <div className="category-picker-panel" role="dialog" aria-modal="true" aria-label="选择分类" onClick={event => event.stopPropagation()}>
+        <div className="category-picker-heading"><strong>选择分类</strong></div>
         <div className="category-picker-columns">
           <div className="category-picker-main-list">
             {roots.map(item => <button type="button" key={item.id} className={activeCategory?.id === item.id ? 'active' : ''} onClick={() => setActiveId(item.id)}>
