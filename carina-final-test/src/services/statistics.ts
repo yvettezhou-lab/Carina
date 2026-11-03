@@ -176,7 +176,7 @@ export function filterReflectionTransactions(
   id: string,
   accounts: Account[] = [],
 ) {
-  const current = monthTransactions(transactions, year, month).filter(isCountedExpense);
+  const current = monthTransactions(transactions, year, month).filter((t) => isCountedExpense(t, accounts));
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
@@ -187,7 +187,7 @@ export function filterReflectionAnnualTransactions(
   id: string,
   accounts: Account[] = [],
 ) {
-  const current = yearTransactions(transactions, year).filter(isCountedExpense);
+  const current = yearTransactions(transactions, year).filter((t) => isCountedExpense(t, accounts));
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
 }
 
