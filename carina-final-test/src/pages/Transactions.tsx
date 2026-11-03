@@ -3,7 +3,7 @@ import { ArrowLeftRight, Feather, Filter, Trash2, X } from 'lucide-react';
 import { db } from '@/database/db';
 import type { Account, Category, Person, Transaction, Transfer } from '@/models';
 import { deleteTransaction } from '@/services/transactions';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 type LedgerItem = {
   id: string;
@@ -23,20 +23,24 @@ type LedgerItem = {
   transactionIds: string[];
 };
 
+type LedgerFilters = { keyword: string; dateFrom: string; dateTo: string; flowFilter: 'all' | 'income' | 'expense' | 'transfer'; categoryFilter: string; accountFilter: string; personFilter: string; };
+
 export function Transactions() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const restoredFilters = (location.state as { ledgerFilters?: LedgerFilters } | null)?.ledgerFilters;
   const [items, setItems] = useState<LedgerItem[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  const [keyword, setKeyword] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [flowFilter, setFlowFilter] = useState<'all' | 'income' | 'expense' | 'transfer'>('all');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [accountFilter, setAccountFilter] = useState('');
-  const [personFilter, setPersonFilter] = useState('');
+  const [keyword, setKeyword] = useState(restoredFilters?.keyword ?? '');
+  const [dateFrom, setDateFrom] = useState(restoredFilters?.dateFrom ?? '');
+  const [dateTo, setDateTo] = useState(restoredFilters?.dateTo ?? '');
+  const [flowFilter, setFlowFilter] = useState<'all' | 'income' | 'expense' | 'transfer'>(restoredFilters?.flowFilter ?? 'all');
+  const [categoryFilter, setCategoryFilter] = useState(restoredFilters?.categoryFilter ?? '');
+  const [accountFilter, setAccountFilter] = useState(restoredFilters?.accountFilter ?? '');
+  const [personFilter, setPersonFilter] = useState(restoredFilters?.personFilter ?? '');
 
   async function refresh() {
     const [tx, transfers, accountRows, categoryRows, personRows, subcategoryRows] = await Promise.all([
@@ -170,6 +174,8 @@ export function Transactions() {
     personFilter,
     keyword.trim()
   ].filter(Boolean).length;
+
+  const currentLedgerFilters: LedgerFilters = { keyword, dateFrom, dateTo, flowFilter, categoryFilter, accountFilter, personFilter };
 
   function clearFilters() {
     setKeyword('');
@@ -314,7 +320,7 @@ export function Transactions() {
                 type="button"
                 className="ledger-row-hit"
                 aria-label={`Edit ${item.kind === 'transfer' ? 'transfer' : 'transaction'} ${item.description}`}
-                onClick={() => navigate(item.kind === 'transfer' ? `/transfer/${item.id}` : `/transactions/${item.id}/edit`)}
+                onClick={() => navigate(item.kind === 'transfer' ? `/transfer/${item.id}` : `/transactions/${item.id}/edit`, { state: { ledgerFilters: currentLedgerFilters } })}
               />
 
               <div className={`ledger-mark ${item.kind}`} aria-hidden="true">
