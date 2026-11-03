@@ -88,7 +88,12 @@ export function Reflection() {
 
     return transactions.flatMap((transaction) => {
       const isPositiveSettlementDifference = transaction.flow === 'income' && transaction.kind === 'normal' && transaction.description === '代付多收差额';
-      if (!personalAccountIds.has(transaction.accountId) && transaction.includeInIncomeStats !== true) return [];
+      // Accounts excluded from net worth (for example, credit cards) still
+      // contribute their real expenses to personal spending statistics.
+      // Their income remains excluded unless explicitly opted in.
+      if (!personalAccountIds.has(transaction.accountId) &&
+          transaction.flow !== 'expense' &&
+          transaction.includeInIncomeStats !== true) return [];
       if (accounts.some((account) => account.id === transaction.accountId && account.isVirtualLedger === true)) return [];
       if (transaction.kind === 'reimbursement') {
         if (!transaction.settlementId) return [];
