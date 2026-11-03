@@ -52,7 +52,9 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, { error:
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppErrorBoundary>
-      <RouterProvider router={router} />
+      <React.Suspense fallback={<main className="app-loading" aria-busy="true">Carina</main>}>
+        <RouterProvider router={router} />
+      </React.Suspense>
     </AppErrorBoundary>
   </React.StrictMode>
 );
