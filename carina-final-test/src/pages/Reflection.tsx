@@ -104,7 +104,7 @@ export function Reflection() {
       const isExcludedAdvanceActivity = transaction.kind === 'advance' || transaction.kind === 'settlement_difference' || (Boolean(transaction.settlementId) && !isPositiveSettlementDifference);
       return isExcludedAdvanceActivity ? [] : [transaction];
     });
-  }, [transactions, personalAccountIds]);
+  }, [transactions, personalAccountIds, accounts]);
   const data = useMemo(() => buildReflectionData(personalTransactions, categories, personalAccounts, year, month), [personalTransactions, categories, personalAccounts, year, month]);
   const annualData = useMemo(() => buildReflectionAnnualData(personalTransactions, categories, personalAccounts, year), [personalTransactions, categories, personalAccounts, year]);
   const activeData = period === 'year' ? annualData : data;
