@@ -38,32 +38,36 @@ export function Transactions() {
   const [personFilter, setPersonFilter] = useState('');
 
   async function refresh() {
-    const [tx, transfers, accountRows, categoryRows, personRows] = await Promise.all([
+    const [tx, transfers, accountRows, categoryRows, personRows, subcategoryRows] = await Promise.all([
       db.transactions.orderBy('dateTime').reverse().toArray(),
       db.transfers.orderBy('dateTime').reverse().toArray(),
       db.accounts.toArray(),
       db.categories.toArray(),
-      db.people.toArray()
+      db.people.toArray(),
+      db.subcategories.toArray()
     ]);
 
     const accountNames = Object.fromEntries(accountRows.map(x => [x.id, x.name]));
     const categoryNames = Object.fromEntries(categoryRows.map(x => [x.id, x.name]));
+    const subcategoryNames = Object.fromEntries(subcategoryRows.map(x => [x.id, x.name]));
 
+    // Explicit groupId is authoritative. For legacy split rows created before
+    // groupId existed, only group rows that share the exact creation timestamp
+    // as well as the full transaction signature and have distinct people.
+    // The createdAt constraint avoids merging later independent same-name entries.
     const grouped = new Map<string, Transaction[]>();
     const legacyPeople = new Map<string, Set<string>>();
-
+    const legacyKeyOf = (t: Transaction) =>
+      `legacy:${t.createdAt}|${t.dateTime}|${t.accountId}|${t.categoryId}|${t.flow}|${t.kind ?? ''}|${t.advanceStatus ?? ''}|${t.description.trim()}`;
     for (const t of tx) {
       if (!t.personId || t.groupId) continue;
-      const key = `legacy:${t.dateTime}|${t.accountId}|${t.categoryId}|${t.flow}|${t.kind ?? ''}|${t.advanceStatus ?? ''}|${t.description.trim()}`;
+      const key = legacyKeyOf(t);
       const peopleForKey = legacyPeople.get(key) ?? new Set<string>();
       peopleForKey.add(t.personId);
       legacyPeople.set(key, peopleForKey);
     }
-
     for (const t of tx) {
-      const legacyKey = t.personId
-        ? `legacy:${t.dateTime}|${t.accountId}|${t.categoryId}|${t.flow}|${t.kind ?? ''}|${t.advanceStatus ?? ''}|${t.description.trim()}`
-        : '';
+      const legacyKey = legacyKeyOf(t);
       const key = t.groupId
         ? `group:${t.groupId}`
         : t.personId && (legacyPeople.get(legacyKey)?.size ?? 0) > 1
@@ -83,7 +87,7 @@ export function Transactions() {
         description: first.description,
         amount: rows.reduce((sum, row) => sum + row.amount, 0),
         flow: first.flow,
-        category: categoryNames[first.categoryId] ?? 'Uncategorized',
+        category: `${categoryNames[first.categoryId] ?? 'Uncategorized'}${first.subcategoryId && subcategoryNames[first.subcategoryId] ? ` · ${subcategoryNames[first.subcategoryId]}` : ''}`,
         categoryId: first.categoryId,
         account: accountNames[first.accountId],
         accountId: first.accountId,
@@ -216,7 +220,7 @@ export function Transactions() {
             <input
               value={keyword}
               onChange={e => setKeyword(e.target.value)}
-              placeholder="Description, category or account"
+              placeholder="Description, category, subcategory or account"
             />
           </label>
 
