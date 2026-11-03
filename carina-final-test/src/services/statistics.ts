@@ -54,12 +54,17 @@ function yearTransactions(transactions: Transaction[], year: number) {
   return transactions.filter((t) => t.dateTime >= start && t.dateTime < end);
 }
 
-function isCountedIncome(t: Transaction) {
-  return t.flow === 'income' && t.kind !== 'reimbursement';
+function isVirtualLedgerTransaction(t: Transaction, accounts: Account[]) {
+  return accounts.some((account) => account.id === t.accountId && account.isVirtualLedger === true);
 }
 
-function isCountedExpense(t: Transaction) {
-  return t.flow === 'expense' && t.kind !== 'advance';
+function isCountedIncome(t: Transaction, accounts: Account[] = []) {
+  return t.flow === 'income' && t.kind !== 'reimbursement' && t.kind !== 'settlement_difference'
+    && t.excludeFromIncomeStats !== true && !isVirtualLedgerTransaction(t, accounts);
+}
+
+function isCountedExpense(t: Transaction, accounts: Account[] = []) {
+  return t.flow === 'expense' && t.kind !== 'advance' && !isVirtualLedgerTransaction(t, accounts);
 }
 
 function breakdown(
@@ -67,11 +72,12 @@ function breakdown(
   key: 'categoryId' | 'accountId',
   names: Map<string, string>,
   allIds: string[],
+  accounts: Account[],
 ): ReflectionBreakdown[] {
   // Reflection is a personal spending report: exclude advances (代付) for both
   // account and category breakdowns. Account balances remain independent and
   // continue to include these transactions for credit-card debt tracking.
-  const expenses = transactions.filter(isCountedExpense);
+  const expenses = transactions.filter((t) => isCountedExpense(t, accounts));
   const totals = new Map<string, { amount: number; count: number }>();
 
   for (const transaction of expenses) {
@@ -99,10 +105,10 @@ function breakdown(
 
 function summarize(transactions: Transaction[], categories: Category[], accounts: Account[]) {
   const income = transactions
-    .filter(isCountedIncome)
+    .filter((t) => isCountedIncome(t, accounts))
     .reduce((sum, t) => sum + t.amount, 0);
   const expense = transactions
-    .filter(isCountedExpense)
+    .filter((t) => isCountedExpense(t, accounts))
     .reduce((sum, t) => sum + t.amount, 0);
 
   const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
@@ -112,8 +118,8 @@ function summarize(transactions: Transaction[], categories: Category[], accounts
     income,
     expense,
     netFlow: income - expense,
-    category: breakdown(transactions, 'categoryId', categoryNames, categories.filter((item) => !item.isArchived).map((item) => item.id)),
-    account: breakdown(transactions, 'accountId', accountNames, accounts.filter((item) => !item.isArchived).map((item) => item.id)),
+    category: breakdown(transactions, 'categoryId', categoryNames, categories.filter((item) => !item.isArchived).map((item) => item.id), accounts),
+    account: breakdown(transactions, 'accountId', accountNames, accounts.filter((item) => !item.isArchived && !item.isVirtualLedger).map((item) => item.id), accounts),
   };
 }
 
@@ -154,8 +160,8 @@ export function buildReflectionAnnualData(
     return {
       key: `${year}-${month}`,
       label: new Date(year, month, 1).toLocaleDateString('en-US', { month: 'short' }),
-      income: rows.filter(isCountedIncome).reduce((sum, t) => sum + t.amount, 0),
-      expense: rows.filter(isCountedExpense).reduce((sum, t) => sum + t.amount, 0),
+      income: rows.filter((t) => isCountedIncome(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
+      expense: rows.filter((t) => isCountedExpense(t, accounts)).reduce((sum, t) => sum + t.amount, 0),
     };
   });
 
@@ -168,6 +174,7 @@ export function filterReflectionTransactions(
   month: number,
   mode: 'category' | 'account',
   id: string,
+  accounts: Account[] = [],
 ) {
   const current = monthTransactions(transactions, year, month).filter(isCountedExpense);
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
@@ -178,6 +185,7 @@ export function filterReflectionAnnualTransactions(
   year: number,
   mode: 'category' | 'account',
   id: string,
+  accounts: Account[] = [],
 ) {
   const current = yearTransactions(transactions, year).filter(isCountedExpense);
   return current.filter((t) => t[mode === 'category' ? 'categoryId' : 'accountId'] === id);
