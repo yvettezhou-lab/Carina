@@ -211,11 +211,6 @@ export function Transactions() {
         </div>
       </header>
 
-      <div className="ledger-expense-summary">
-        <span>FILTERED EXPENSE TOTAL</span>
-        <strong>¥{filteredExpenseTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-      </div>
-
       <div className="ledger-filter-toolbar">
         <button type="button" className="ledger-filter-button" onClick={() => setShowFilters(v => !v)}>
           <Filter size={15} />
@@ -225,7 +220,7 @@ export function Transactions() {
         {activeFilterCount > 0 && (
           <button type="button" className="ledger-clear-filter" onClick={clearFilters}>Clear</button>
         )}
-        <span className="ledger-result-count">{filteredItems.length} records</span>
+        <span className="ledger-result-count">¥{filteredExpenseTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} · {filteredItems.length} records</span>
       </div>
 
       {showFilters && (
