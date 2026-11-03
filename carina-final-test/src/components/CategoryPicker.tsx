@@ -70,7 +70,18 @@ export function CategoryPicker({ categories, subcategories, categoryId, subcateg
     if (!(event.target instanceof Element)) return;
     const target = event.target;
     const trigger = target.closest<HTMLElement>('[data-picker-action="toggle"]');
-    if (trigger) pendingAction.current = { type: 'toggle' };
+    if (trigger) {
+      pendingAction.current = { type: 'toggle' };
+      // On iOS, the description input can remain focused while the picker opens.
+      // Blur it first so the software keyboard and its input accessory bar close
+      // instead of remaining underneath the category sheet.
+      if (!open) {
+        const focused = document.activeElement;
+        if (focused instanceof HTMLInputElement || focused instanceof HTMLTextAreaElement) {
+          focused.blur();
+        }
+      }
+    }
     else {
       const backdrop = target.closest<HTMLElement>('[data-picker-backdrop]');
       const mainCategory = target.closest<HTMLElement>('[data-picker-main-category]');
