@@ -24,12 +24,12 @@ export async function suggest(text: string, flow: Flow = 'expense'): Promise<Sug
   const exact = profiles.filter((profile) => normalizeName(profile.name) === name);
   const profile = exact
     .filter((item) => item.flow === flow)
-    .sort((a, b) => b.useCount - a.useCount || b.lastUsedAt - a.lastUsedAt)[0]
+    .sort((a, b) => b.useCount - a.useCount || (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0))[0]
     // Legacy profiles without a flow remain usable only when there is no
     // flow-specific profile for this exact description.
     ?? exact
       .filter((item) => !item.flow)
-      .sort((a, b) => b.useCount - a.useCount || b.lastUsedAt - a.lastUsedAt)[0];
+      .sort((a, b) => b.useCount - a.useCount || (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0))[0];
 
   return profile
     ? {
@@ -62,7 +62,7 @@ export async function learnFromTransaction(transaction: {
     .sort((a, b) => {
       // Prefer a profile already scoped to this flow; otherwise upgrade a legacy profile.
       const flowPriority = Number(Boolean(b.flow)) - Number(Boolean(a.flow));
-      return flowPriority || b.useCount - a.useCount || b.lastUsedAt - a.lastUsedAt;
+      return flowPriority || b.useCount - a.useCount || (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0);
     })[0];
 
   const learned = {
