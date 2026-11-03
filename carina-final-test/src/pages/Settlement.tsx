@@ -91,7 +91,7 @@ export function Settlement() {
       setAdvances(await getPendingAdvances());
       setMessage('结算已撤销，原始代付已恢复为待收回');
     } catch (error) {
-      setCorrectionMessage(error instanceof Error ? error.message : '撤销结算失败');
+      setMessage(error instanceof Error ? error.message : '撤销结算失败');
     }
   };
 
