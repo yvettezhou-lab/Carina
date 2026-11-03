@@ -14,7 +14,7 @@ interface CategoryPickerProps {
 
 export function CategoryPicker({ categories, subcategories, categoryId, subcategoryId, onChange }: CategoryPickerProps) {
   const [open, setOpen] = useState(false);
-  const [activeId, setActiveId] = useState(categoryId);
+  const [activeId, setActiveId] = useState(categories.find(item => item.id === categoryId)?.parentCategoryId ?? categoryId);
   const activeCategory = categories.find(item => item.id === activeId) ?? categories[0];
   const roots = useMemo(() => categories.filter(item => !item.parentCategoryId || !categories.some(parent => parent.id === item.parentCategoryId)), [categories]);
   const selectedCategory = categories.find(item => item.id === categoryId);
@@ -30,7 +30,7 @@ export function CategoryPicker({ categories, subcategories, categoryId, subcateg
   ] : [];
 
   useEffect(() => {
-    if (open) setActiveId(categoryId);
+    if (open) setActiveId(categories.find(item => item.id === categoryId)?.parentCategoryId ?? categoryId);
   }, [open, categoryId]);
 
   const choose = (choice?: Choice) => {
