@@ -26,8 +26,10 @@
 .settlement-history-filters,.settlement-correction-editor{--settlement-control-height:40px}
 .settlement-section .settlement-field select,
 .settlement-section .settlement-field input:not([type="checkbox"]),
+.settlement-section .settlement-field .date-picker-trigger,
 .settlement-history-filters .settlement-field select,
 .settlement-history-filters .settlement-field input,
+.settlement-history-filters .settlement-field .date-picker-trigger,
 .settlement-correction-editor .settlement-field select,
 .settlement-correction-editor .settlement-field input{
   display:block!important;
@@ -59,48 +61,6 @@
   background-position:right 10px center!important;
   background-size:16px 16px!important;
 }
-.settlement-section .settlement-field input[type="date"],
-.settlement-history-filters .settlement-field input[type="date"],
-.settlement-correction-editor .settlement-field input[type="date"]{
-  inline-size:100%!important;
-  min-inline-size:0!important;
-  max-inline-size:100%!important;
-  overflow:hidden!important;
-  color-scheme:light!important;
-  -webkit-text-fill-color:var(--ink)!important;
-  text-align:left!important;
-}
-.settlement-section input[type="date"]::-webkit-date-and-time-value,
-.settlement-history-filters input[type="date"]::-webkit-date-and-time-value,
-.settlement-correction-editor input[type="date"]::-webkit-date-and-time-value{
-  display:flex!important;
-  align-items:center!important;
-  justify-content:flex-start!important;
-  width:100%!important;
-  height:100%!important;
-  min-height:0!important;
-  padding:0!important;
-  margin:0!important;
-  line-height:normal!important;
-  text-align:left!important;
-}
-.settlement-section .settlement-field input:not([type="checkbox"]),
-.settlement-history-filters .settlement-field input,
-.settlement-correction-editor .settlement-field input{
-  line-height:normal!important;
-  vertical-align:middle!important;
-}
-.settlement-section .settlement-field input[type="date"],
-.settlement-history-filters .settlement-field input[type="date"],
-.settlement-correction-editor .settlement-field input[type="date"]{
-  display:flex!important;
-  align-items:center!important;
-  padding-top:0!important;
-  padding-bottom:0!important;
-}
-.settlement-section input[type="date"]::-webkit-calendar-picker-indicator,
-.settlement-history-filters input[type="date"]::-webkit-calendar-picker-indicator,
-.settlement-correction-editor input[type="date"]::-webkit-calendar-picker-indicator{opacity:.75!important;margin:0!important}
 .settlement-amount-field{margin-top:7px}
 .settlement-summary{margin-top:7px;padding:7px 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
 .settlement-summary>div{display:flex;justify-content:space-between;gap:16px;font-size:14px}
@@ -153,3 +113,8 @@
 
 /* Make the primary settle action as easy to tap as other primary actions. */
 .settlement-section .settlement-submit{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px!important;padding:14px 18px!important;border-radius:8px!important;font-size:17px!important;font-weight:600!important;line-height:1.25!important;}
+
+/* Shared calendar trigger follows the same height as the surrounding settlement controls. */
+.settlement-section .date-picker-trigger{height:var(--settlement-control-height)!important;min-height:var(--settlement-control-height)!important;max-height:var(--settlement-control-height)!important;border-radius:6px!important;padding:0 10px!important;font-size:16px!important}
+.settlement-history-filters .date-picker-trigger{height:var(--settlement-control-height)!important;min-height:var(--settlement-control-height)!important;max-height:var(--settlement-control-height)!important;border-radius:6px!important;padding:0 8px!important;font-size:13px!important}
+.settlement-field .date-picker-wrap{width:100%;min-width:0}
