@@ -1,8 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, ChevronRight, Check } from 'lucide-react';
 import type { Category, Subcategory } from '@/models';
 
 type Choice = { id: string; name: string; kind: 'category' | 'subcategory'; archived?: boolean };
+type PickerAction =
+  | { type: 'toggle' }
+  | { type: 'dismiss' }
+  | { type: 'main'; id: string }
+  | { type: 'choice'; id?: string; kind: 'category' | 'subcategory' | 'none' };
 
 interface CategoryPickerProps {
   categories: Category[];
@@ -29,61 +34,89 @@ export function CategoryPicker({ categories, subcategories, categoryId, subcateg
     ...subcategories.filter(item => item.categoryId === activeCategory.id && !item.isArchived).map(item => ({ id: item.id, name: item.name, kind: 'subcategory' as const, archived: item.isArchived })),
   ] : [];
 
+  const pendingAction = useRef<PickerAction | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (open) setActiveId(categories.find(item => item.id === categoryId)?.parentCategoryId ?? categoryId);
   }, [open, categoryId]);
 
-  const choose = (choice?: Choice) => {
-    if (!activeCategory) return;
-    if (!choice) onChange(activeCategory.id, '');
-    else if (choice.kind === 'category') onChange(choice.id, '');
-    else onChange(activeCategory.id, choice.id);
-    setOpen(false);
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  }, []);
+
+  const scheduleClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    // Keep the backdrop mounted briefly after finger-up so iOS's synthesized
+    // click is swallowed instead of reaching the form underneath.
+    closeTimer.current = setTimeout(() => {
+      setOpen(false);
+      closeTimer.current = null;
+    }, 180);
   };
 
-  // One delegated pointer handler owns every touch interaction in this picker.
-  // This avoids competing click/pointer handlers across the trigger, backdrop,
-  // main categories and subcategory choices on iOS/PWA.
+  const choose = (action: Extract<PickerAction, { type: 'choice' }>) => {
+    if (!activeCategory) return;
+    if (action.kind === 'none') onChange(activeCategory.id, '');
+    else if (action.kind === 'category' && action.id) onChange(action.id, '');
+    else if (action.kind === 'subcategory' && action.id) onChange(activeCategory.id, action.id);
+    scheduleClose();
+  };
+
+  // One delegated controller owns the full pointer lifecycle. Pointer-down only
+  // records intent; state changes happen on pointer-up, after the finger lifts.
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!(event.target instanceof Element)) return;
     const target = event.target;
     const trigger = target.closest<HTMLElement>('[data-picker-action="toggle"]');
-    if (trigger) {
-      event.preventDefault();
+    if (trigger) pendingAction.current = { type: 'toggle' };
+    else {
+      const backdrop = target.closest<HTMLElement>('[data-picker-backdrop]');
+      const mainCategory = target.closest<HTMLElement>('[data-picker-main-category]');
+      const choice = target.closest<HTMLElement>('[data-picker-choice]');
+      if (backdrop && target === backdrop) pendingAction.current = { type: 'dismiss' };
+      else if (mainCategory) pendingAction.current = { type: 'main', id: mainCategory.dataset.pickerMainCategory ?? '' };
+      else if (choice) pendingAction.current = {
+        type: 'choice',
+        id: choice.dataset.pickerChoice,
+        kind: (choice.dataset.choiceKind as 'category' | 'subcategory' | 'none') ?? 'none',
+      };
+      else pendingAction.current = null;
+    }
+    if (pendingAction.current) event.preventDefault();
+  };
+
+  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const action = pendingAction.current;
+    pendingAction.current = null;
+    if (!action) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (action.type === 'toggle') {
+      if (closeTimer.current) {
+        clearTimeout(closeTimer.current);
+        closeTimer.current = null;
+      }
       setOpen(value => !value);
-      return;
+    } else if (action.type === 'dismiss') {
+      scheduleClose();
+    } else if (action.type === 'main') {
+      setActiveId(action.id);
+    } else {
+      choose(action);
     }
+  };
 
-    const backdrop = target.closest<HTMLElement>('[data-picker-backdrop]');
-    if (backdrop && target === backdrop) {
-      event.preventDefault();
-      setOpen(false);
-      return;
-    }
-
-    const mainCategory = target.closest<HTMLElement>('[data-picker-main-category]');
-    if (mainCategory) {
-      event.preventDefault();
-      setActiveId(mainCategory.dataset.pickerMainCategory ?? '');
-      return;
-    }
-
-    const choice = target.closest<HTMLElement>('[data-picker-choice]');
-    if (choice) {
-      event.preventDefault();
-      const kind = choice.dataset.choiceKind;
-      const id = choice.dataset.pickerChoice;
-      if (kind === 'category' && id) choose({ id, name: '', kind: 'category' });
-      else if (kind === 'subcategory' && id) choose({ id, name: '', kind: 'subcategory' });
-      else choose();
-    }
+  const handlePointerCancel = () => {
+    pendingAction.current = null;
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Escape' && open) setOpen(false);
   };
 
-  return <div className="category-picker" onPointerDown={handlePointerDown} onKeyDown={handleKeyDown}>
+  return <div className="category-picker" onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={handlePointerCancel} onKeyDown={handleKeyDown}>
     <button type="button" className="category-picker-trigger" data-picker-action="toggle" aria-haspopup="dialog" aria-expanded={open}>
       <span>{display}</span><ChevronDown size={18}/>
     </button>
