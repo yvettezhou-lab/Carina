@@ -110,8 +110,8 @@ export function Reflection() {
       return isExcludedAdvanceActivity ? [] : [transaction];
     });
   }, [transactions, personalAccountIds, accounts]);
-  const data = useMemo(() => buildReflectionData(personalTransactions, categories, personalAccounts, year, month), [personalTransactions, categories, personalAccounts, year, month]);
-  const annualData = useMemo(() => buildReflectionAnnualData(personalTransactions, categories, personalAccounts, year), [personalTransactions, categories, personalAccounts, year]);
+  const data = useMemo(() => buildReflectionData(personalTransactions, categories, accounts, year, month), [personalTransactions, categories, accounts, year, month]);
+  const annualData = useMemo(() => buildReflectionAnnualData(personalTransactions, categories, accounts, year), [personalTransactions, categories, accounts, year]);
   const activeData = period === 'year' ? annualData : data;
 
   const totalSummary = useMemo(() => {
