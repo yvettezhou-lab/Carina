@@ -9,6 +9,7 @@ type LedgerItem = {
   id: string;
   kind: 'transaction' | 'transfer';
   dateTime: number;
+  displaySortTime: number;
   description: string;
   amount: number;
   flow: 'income' | 'expense';
@@ -84,6 +85,13 @@ export function Transactions() {
         id: first.id,
         kind: 'transaction',
         dateTime: first.dateTime,
+        // Settlement-generated entries are dated at local midnight because
+        // the settlement form captures a date, not a time. Keep their real
+        // dateTime unchanged for filtering/statistics, but display them at
+        // the end of that calendar day in the ledger.
+        displaySortTime: first.settlementId && first.kind !== 'advance'
+          ? (() => { const end = new Date(first.dateTime); end.setHours(23, 59, 59, 999); return end.getTime(); })()
+          : first.dateTime,
         description: first.description,
         amount: rows.reduce((sum, row) => sum + row.amount, 0),
         flow: first.flow,
@@ -100,6 +108,7 @@ export function Transactions() {
       id: t.id,
       kind: 'transfer',
       dateTime: t.dateTime,
+      displaySortTime: t.dateTime,
       description: 'Transfer',
       amount: t.amount,
       flow: 'expense',
@@ -115,7 +124,7 @@ export function Transactions() {
     setAccounts([...accountRows].sort((a, b) => a.sortOrder - b.sortOrder));
     setCategories(categoryRows);
     setPeople(personRows);
-    setItems([...normal, ...transferRows].sort((a, b) => b.dateTime - a.dateTime));
+    setItems([...normal, ...transferRows].sort((a, b) => b.displaySortTime - a.displaySortTime));
   }
 
   useEffect(() => {
