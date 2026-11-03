@@ -351,3 +351,18 @@
 .reflection-summary-table-row>button{cursor:pointer}
 .reflection-summary-table-row span{color:var(--muted);font-size:7px;letter-spacing:.04em}
 .reflection-summary-table-row b{font-size:clamp(10px,2.8vw,13px);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+
+/* Reflection color direction: ink blue, cool blue chart series, red income, green negatives. */
+.reflection-page{--gold:#3976a8;--positive:#c9362b;--negative:#16834a}
+.reflection-page .positive{color:var(--positive)!important}
+.reflection-page .negative{color:var(--negative)!important}
+.reflection-page .reflection-analysis .reflection-swatch{background:var(--gold)}
+.reflection-page .reflection-analysis .reflection-breakdown-row.selected{color:var(--gold);background:rgba(57,118,168,.09)}
+.reflection-page .reflection-analysis .reflection-bar-track{background:rgba(57,118,168,.13)}
+.reflection-page .reflection-analysis .reflection-bar-track i{background:var(--gold)}
+.reflection-page .reflection-analysis .reflection-trend-bars .income{background:#c9362b}
+.reflection-page .reflection-analysis .reflection-trend-bars .expense{background:#3976a8}
+.reflection-page .reflection-analysis .trend-legend .income-dot{background:#c9362b}
+.reflection-page .reflection-analysis .trend-legend .expense-dot{background:#3976a8}
+.reflection-page .reflection-analysis .reflection-breakdown-row.selected{color:#3976a8}
