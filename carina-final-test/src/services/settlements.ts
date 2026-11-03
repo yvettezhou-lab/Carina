@@ -280,7 +280,8 @@ export async function undoSettlement(settlementId:string){
       if(valid.length!==settlement.transactionIds.length||valid.some(t=>t.kind!=='advance'||t.settlementId!==settlement.id||t.advanceStatus!=='settled')){
         throw new Error('原始代付记录不完整或状态异常，未删除任何记录');
       }
-      const linked=await db.transactions.where('settlementId').equals(settlement.id).toArray();
+      // settlementId is intentionally not indexed in the current schema; scan safely instead of using where().
+      const linked=(await db.transactions.toArray()).filter(t=>t.settlementId===settlement.id);
       const originalIds=new Set(settlement.transactionIds);
       const generated=linked.filter(t=>!originalIds.has(t.id));
       // All generated settlement entries are removed together with the settlement.
