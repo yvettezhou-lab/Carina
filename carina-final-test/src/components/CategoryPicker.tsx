@@ -47,30 +47,44 @@ export function CategoryPicker({ categories, subcategories, categoryId, subcateg
     if (!choice) onChange(activeCategory.id, '');
     else if (choice.kind === 'category') onChange(choice.id, '');
     else onChange(activeCategory.id, choice.id);
-    // A choice is a completed action: commit it and dismiss the picker immediately.
     setOpen(false);
+  };
+
+  // Use pointer events for the actual selection/dismissal. On iOS PWA, this
+  // avoids relying on a delayed synthetic click after touch interaction.
+  const handleBackdropPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      event.preventDefault();
+      setOpen(false);
+    }
+  };
+  const handlePanelPointerDown = (event: React.PointerEvent<HTMLDivElement>) => event.stopPropagation();
+  const handleChoicePointerDown = (event: React.PointerEvent<HTMLButtonElement>, choice?: Choice) => {
+    event.preventDefault();
+    event.stopPropagation();
+    choose(choice);
   };
 
   return <div className="category-picker">
     <button type="button" className="category-picker-trigger" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(value => !value)}>
       <span>{display}</span><ChevronDown size={18}/>
     </button>
-    {open && <div className="category-picker-backdrop" onClick={() => setOpen(false)}>
-      <div className="category-picker-panel" role="dialog" aria-modal="true" aria-label="选择分类" onClick={event => event.stopPropagation()}>
+    {open && <div className="category-picker-backdrop" onPointerDown={handleBackdropPointerDown}>
+      <div className="category-picker-panel" role="dialog" aria-modal="true" aria-label="选择分类" onPointerDown={handlePanelPointerDown}>
         <div className="category-picker-heading"><strong>选择分类</strong></div>
         <div className="category-picker-columns">
           <div className="category-picker-main-list">
-            {roots.map(item => <button type="button" key={item.id} className={activeCategory?.id === item.id ? 'active' : ''} onClick={() => setActiveId(item.id)}>
+            {roots.map(item => <button type="button" key={item.id} className={activeCategory?.id === item.id ? 'active' : ''} onPointerDown={event => { event.preventDefault(); event.stopPropagation(); setActiveId(item.id); }}>
               <span>{item.name}</span><ChevronRight size={16}/>
             </button>)}
           </div>
           <div className="category-picker-sub-list">
-            <button type="button" className={!subcategoryId && categoryId === activeCategory?.id ? 'selected' : ''} onClick={() => choose()}>
+            <button type="button" className={!subcategoryId && categoryId === activeCategory?.id ? 'selected' : ''} onPointerDown={event => handleChoicePointerDown(event)}>
               <span>不细分</span>{!subcategoryId && categoryId === activeCategory?.id && <Check size={16}/>}
             </button>
             {choices.map(choice => {
               const selected = choice.kind === 'category' ? categoryId === choice.id : categoryId === activeCategory?.id && subcategoryId === choice.id;
-              return <button type="button" key={choice.id} className={selected ? 'selected' : ''} onClick={() => choose(choice)}>
+              return <button type="button" key={choice.id} className={selected ? 'selected' : ''} onPointerDown={event => handleChoicePointerDown(event, choice)}>
                 <span>{choice.name}{choice.archived ? '（已归档）' : ''}</span>{selected && <Check size={16}/>}
               </button>;
             })}
