@@ -36,6 +36,7 @@ export function CategoryPicker({ categories, subcategories, categoryId, subcateg
 
   const pendingAction = useRef<PickerAction | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openingCategoryId = useRef(categoryId);
 
   useEffect(() => {
     if (open) setActiveId(categories.find(item => item.id === categoryId)?.parentCategoryId ?? categoryId);
@@ -94,12 +95,18 @@ export function CategoryPicker({ categories, subcategories, categoryId, subcateg
     event.stopPropagation();
 
     if (action.type === 'toggle') {
+      if (!open) openingCategoryId.current = categories.find(item => item.id === categoryId)?.parentCategoryId ?? categoryId;
       if (closeTimer.current) {
         clearTimeout(closeTimer.current);
         closeTimer.current = null;
       }
       setOpen(value => !value);
     } else if (action.type === 'dismiss') {
+      // If the user changed the primary category but did not choose a child,
+      // commit that primary category with the implicit “不细分” selection.
+      if (activeCategory && activeCategory.id !== openingCategoryId.current) {
+        onChange(activeCategory.id, '');
+      }
       scheduleClose();
     } else if (action.type === 'main') {
       setActiveId(action.id);
