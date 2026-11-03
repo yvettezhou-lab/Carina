@@ -88,7 +88,8 @@ export function Reflection() {
 
     return transactions.flatMap((transaction) => {
       const isPositiveSettlementDifference = transaction.flow === 'income' && transaction.kind === 'normal' && transaction.description === '代付多收差额';
-      if (!personalAccountIds.has(transaction.accountId)) return [];
+      if (!personalAccountIds.has(transaction.accountId) && transaction.includeInIncomeStats !== true) return [];
+      if (accounts.some((account) => account.id === transaction.accountId && account.isVirtualLedger === true)) return [];
       if (transaction.kind === 'reimbursement') {
         if (!transaction.settlementId) return [];
         const sourceAdvances = advancesBySettlement.get(transaction.settlementId) ?? [];
@@ -103,7 +104,7 @@ export function Reflection() {
       const isExcludedAdvanceActivity = transaction.kind === 'advance' || transaction.kind === 'settlement_difference' || (Boolean(transaction.settlementId) && !isPositiveSettlementDifference);
       return isExcludedAdvanceActivity ? [] : [transaction];
     });
-  }, [transactions, personalAccountIds]);
+  }, [transactions, personalAccountIds, accounts]);
   const data = useMemo(() => buildReflectionData(personalTransactions, categories, personalAccounts, year, month), [personalTransactions, categories, personalAccounts, year, month]);
   const annualData = useMemo(() => buildReflectionAnnualData(personalTransactions, categories, personalAccounts, year), [personalTransactions, categories, personalAccounts, year]);
   const activeData = period === 'year' ? annualData : data;
@@ -177,13 +178,13 @@ export function Reflection() {
     }
     if (mode === 'category') {
       const rows = period === 'year'
-        ? filterReflectionAnnualTransactions(personalTransactions, year, 'category', selectedId)
-        : filterReflectionTransactions(personalTransactions, year, month, 'category', selectedId);
+        ? filterReflectionAnnualTransactions(personalTransactions, year, 'category', selectedId, accounts)
+        : filterReflectionTransactions(personalTransactions, year, month, 'category', selectedId, accounts);
       return sortTransactionsNewestFirst(collapseForDrillDown(rows));
     }
     const rows = period === 'year'
-      ? filterReflectionAnnualTransactions(personalTransactions, year, 'account', selectedId)
-      : filterReflectionTransactions(personalTransactions, year, month, 'account', selectedId);
+      ? filterReflectionAnnualTransactions(personalTransactions, year, 'account', selectedId, accounts)
+      : filterReflectionTransactions(personalTransactions, year, month, 'account', selectedId, accounts);
     return sortTransactionsNewestFirst(collapseForDrillDown(rows));
   }, [personalTransactions, year, month, period, mode, selectedId]);
 
