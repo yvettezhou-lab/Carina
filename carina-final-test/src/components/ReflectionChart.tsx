@@ -16,8 +16,8 @@ function Donut({ data, selectedId, onSelect, onToggleChart }: { data: Reflection
     return { ...item, start, end: cursor, index };
   });
   const background = segments.length
-    ? `conic-gradient(${segments.map((s) => `${['#8f6f37', '#6e836d', '#5b6878', '#a67c52', '#8b7d6b', '#6f6252'][s.index]} ${s.start * 100}% ${s.end * 100}%`).join(',')})`
-    : 'rgba(168,135,74,.12)';
+    ? `conic-gradient(${segments.map((s) => `${['#174a78', '#3976a8', '#65a0c8', '#83bdc9', '#a8d3df', '#6c8ca8'][s.index]} ${s.start * 100}% ${s.end * 100}%`).join(',')})`
+    : 'rgba(47,111,159,.12)';
 
   return (
     <div className="reflection-donut-layout">
