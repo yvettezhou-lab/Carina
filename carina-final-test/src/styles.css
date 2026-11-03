@@ -250,3 +250,9 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 .category-picker-sub-list button.selected{background:rgba(168,135,74,.13);color:var(--ink);font-weight:600}
 .category-picker-main-list button svg,.category-picker-sub-list button svg{flex:none;color:var(--gold)}
 @media(max-width:600px){.category-picker-backdrop{align-items:flex-end;padding:0}.category-picker-panel{width:100%;max-height:min(68vh,560px);border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom)}.category-picker-columns{min-height:240px}.category-picker-main-list button,.category-picker-sub-list button{min-height:50px;padding:12px 10px}}
+
+
+/* Filtered ledger expense total */
+.ledger-expense-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:13px 15px;background:rgba(255,252,244,.78);border:1px solid var(--line);border-radius:3px}
+.ledger-expense-summary span{font-size:9px;letter-spacing:.14em;font-weight:700;color:var(--muted)}
+.ledger-expense-summary strong{font-size:18px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--ink)}
