@@ -270,8 +270,10 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 .date-grid>span,.date-grid>button{display:grid;place-items:center;min-width:0;height:34px;border:0;border-radius:5px;background:transparent;color:var(--ink);font:inherit;font-size:13px}
 .date-grid>button.selected{background:var(--ink);color:#fff}
 .date-grid>button:active{background:rgba(168,135,74,.2)}
-.ledger-filter-panel .ledger-date-picker .date-picker-trigger{height:44px;min-height:44px;max-height:44px;padding:0 8px;font-size:12px}
+/* Ledger date fields must occupy exactly the same control box as adjacent selects. */
+.ledger-filter-panel .ledger-date-picker{display:block!important;flex:0 0 44px!important;width:100%!important;height:44px!important;min-height:44px!important;max-height:44px!important;min-width:0!important;box-sizing:border-box!important}
+.ledger-filter-panel .ledger-date-picker .date-picker-trigger{display:flex!important;flex:0 0 44px!important;align-items:center!important;justify-content:space-between!important;width:100%!important;height:44px!important;min-height:44px!important;max-height:44px!important;margin:0!important;padding:0 10px!important;box-sizing:border-box!important;line-height:normal!important;font-size:12px!important}
 .ledger-filter-panel .ledger-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:10px;min-width:0}
-.ledger-filter-panel .ledger-filter-field{min-width:0;width:100%;margin:0;box-sizing:border-box}
+.ledger-filter-panel .ledger-filter-field{display:flex;flex-direction:column;align-items:stretch;min-width:0;width:100%;margin:0;box-sizing:border-box}
 .ledger-filter-panel .ledger-filter-field .date-picker-wrap{width:100%;min-width:0}
-@media(max-width:430px){.ledger-filter-panel .ledger-filter-grid{gap:8px}.ledger-filter-panel .ledger-date-picker .date-picker-trigger{padding:0 6px;font-size:11px}}
+@media(max-width:430px){.ledger-filter-panel .ledger-filter-grid{gap:8px}.ledger-filter-panel .ledger-date-picker .date-picker-trigger{padding:0 8px;font-size:12px}}
