@@ -21,6 +21,10 @@ export function DatePicker({ value, onChange, placeholder = 'Select date', class
   });
 
   useEffect(() => {
+    setOpen(false);
+  }, [value]);
+
+  useEffect(() => {
     if (open) {
       const initial = selected ?? new Date();
       setMonth(new Date(initial.getFullYear(), initial.getMonth(), 1));
@@ -51,7 +55,7 @@ export function DatePicker({ value, onChange, placeholder = 'Select date', class
           <div className="date-grid">
             {cells.map((day, index) => day === null
               ? <span key={`blank-${index}`} />
-              : <button type="button" key={day} className={selected && day === selected.getDate() && month.getMonth() === selected.getMonth() && month.getFullYear() === selected.getFullYear() ? 'selected' : ''} onClick={() => { onChange(toKey(new Date(month.getFullYear(), month.getMonth(), day))); setOpen(false); }}>{day}</button>
+              : <button type="button" key={day} className={selected && day === selected.getDate() && month.getMonth() === selected.getMonth() && month.getFullYear() === selected.getFullYear() ? 'selected' : ''} onClick={(event) => { event.preventDefault(); event.stopPropagation(); onChange(toKey(new Date(month.getFullYear(), month.getMonth(), day))); setOpen(false); }}>{day}</button>
             )}
           </div>
         </div>
