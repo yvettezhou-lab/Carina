@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { DatePicker } from '@/components/DatePicker';
+import { ChevronLeft } from 'lucide-react';
 import { db } from '@/database/db';
 import type { Account, Category, Person, Transaction, Flow, Subcategory } from '@/models';
 import { evaluateAmountExpression } from '@/utils/amount';
