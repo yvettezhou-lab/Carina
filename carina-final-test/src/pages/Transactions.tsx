@@ -252,7 +252,7 @@ export function Transactions() {
             </label>
             <label className="ledger-filter-field">
               <span>To</span>
-              <DatePicker value={dateTo} onChange={setDateTo} placeholder="Any date" className="ledger-date-picker" />
+              <DatePicker value={dateTo} onChange={setDateTo} placeholder="Any date" controlClassName="ledger-control" />
             </label>
           </div>
 
