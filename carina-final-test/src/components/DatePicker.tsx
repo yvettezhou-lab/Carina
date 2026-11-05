@@ -9,9 +9,10 @@ type DatePickerProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  controlClassName?: string;
 };
 
-export function DatePicker({ value, onChange, placeholder = 'Select date', className = '' }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder = 'Select date', className = '', controlClassName = '' }: DatePickerProps) {
   const datePart = value ? value.slice(0, 10) : '';
   const selected = datePart ? new Date(`${datePart}T00:00:00`) : null;
   const [open, setOpen] = useState(false);
@@ -40,7 +41,7 @@ export function DatePicker({ value, onChange, placeholder = 'Select date', class
 
   return (
     <div className={`date-picker-wrap custom-date-picker ${className}`.trim()}>
-      <button type="button" className="date-picker-trigger" aria-label="Choose date" aria-expanded={open} onClick={() => setOpen(current => !current)}>
+      <button type="button" className={`date-picker-trigger ${controlClassName}`.trim()} aria-label="Choose date" aria-expanded={open} onClick={() => setOpen(current => !current)}>
         <span>{selected ? selected.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : placeholder}</span>
         <CalendarDays size={16} />
       </button>
