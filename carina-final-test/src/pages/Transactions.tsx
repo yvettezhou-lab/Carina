@@ -248,7 +248,7 @@ export function Transactions() {
           <div className="ledger-filter-grid">
             <label className="ledger-filter-field">
               <span>From</span>
-              <DatePicker value={dateFrom} onChange={setDateFrom} placeholder="Any date" className="ledger-date-picker" />
+              <DatePicker value={dateFrom} onChange={setDateFrom} placeholder="Any date" controlClassName="ledger-control" />
             </label>
             <label className="ledger-filter-field">
               <span>To</span>
@@ -259,7 +259,7 @@ export function Transactions() {
           <div className="ledger-filter-grid">
             <label className="ledger-filter-field">
               <span>Type</span>
-              <select value={flowFilter} onChange={e => setFlowFilter(e.target.value as typeof flowFilter)}>
+              <select className="ledger-control" value={flowFilter} onChange={e => setFlowFilter(e.target.value as typeof flowFilter)}>
                 <option value="all">All</option>
                 <option value="income">Income</option>
                 <option value="expense">Expense</option>
@@ -268,7 +268,7 @@ export function Transactions() {
             </label>
             <label className="ledger-filter-field">
               <span>Category</span>
-              <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
+              <select className="ledger-control" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
                 <option value="">All categories</option>
                 {categories.map(x => (
                   <option key={x.id} value={x.id}>
@@ -282,14 +282,14 @@ export function Transactions() {
           <div className="ledger-filter-grid">
             <label className="ledger-filter-field">
               <span>Account</span>
-              <select value={accountFilter} onChange={e => setAccountFilter(e.target.value)}>
+              <select className="ledger-control" value={accountFilter} onChange={e => setAccountFilter(e.target.value)}>
                 <option value="">All accounts</option>
                 {accounts.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
               </select>
             </label>
             <label className="ledger-filter-field">
               <span>Person</span>
-              <select value={personFilter} onChange={e => setPersonFilter(e.target.value)}>
+              <select className="ledger-control" value={personFilter} onChange={e => setPersonFilter(e.target.value)}>
                 <option value="">All people</option>
                 {people.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
               </select>
