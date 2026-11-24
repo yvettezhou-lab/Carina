@@ -22,6 +22,7 @@ type LedgerItem = {
   otherAccountId?: string;
   personIds: string[];
   transactionIds: string[];
+  isSyncMirror?: boolean;
 };
 
 type LedgerFilters = { keyword: string; dateFrom: string; dateTo: string; flowFilter: 'all' | 'income' | 'expense' | 'transfer'; categoryFilter: string; accountFilter: string; personFilter: string; };
@@ -109,6 +110,30 @@ export function Transactions() {
       };
     });
 
+    // A transaction with syncAccountId affects both account balances. Show a
+    // corresponding ledger row under the synced account as well, while keeping
+    // it linked to the original transaction for edits and deletion.
+    const syncedRows: LedgerItem[] = Array.from(grouped.values()).flatMap((rows) => {
+      const first = rows[0];
+      if (!first.syncAccountId) return [];
+      return [{
+        id: `sync:${first.id}`,
+        kind: 'transaction' as const,
+        dateTime: first.dateTime,
+        displaySortTime: first.dateTime,
+        description: first.description,
+        amount: rows.reduce((sum, row) => sum + (row.syncAmount ?? row.amount), 0),
+        flow: first.flow,
+        category: `${categoryNames[first.categoryId] ?? 'Uncategorized'}${first.subcategoryId && subcategoryNames[first.subcategoryId] ? ` · ${subcategoryNames[first.subcategoryId]}` : ''}`,
+        categoryId: first.categoryId,
+        account: accountNames[first.syncAccountId],
+        accountId: first.syncAccountId,
+        personIds: rows.map(row => row.personId).filter((id): id is string => Boolean(id)),
+        transactionIds: rows.map(row => row.id),
+        isSyncMirror: true
+      }];
+    });
+
     const transferRows: LedgerItem[] = transfers.map((t: Transfer) => ({
       id: t.id,
       kind: 'transfer',
@@ -129,7 +154,7 @@ export function Transactions() {
     setAccounts([...accountRows].sort((a, b) => a.sortOrder - b.sortOrder));
     setCategories(categoryRows);
     setPeople(personRows);
-    setItems([...normal, ...transferRows].sort((a, b) => b.displaySortTime - a.displaySortTime));
+    setItems([...normal, ...syncedRows, ...transferRows].sort((a, b) => b.displaySortTime - a.displaySortTime));
   }
 
   useEffect(() => {
@@ -162,7 +187,7 @@ export function Transactions() {
   }, [items, dateFrom, dateTo, flowFilter, categoryFilter, accountFilter, personFilter, keyword]);
 
   const filteredExpenseTotal = filteredItems.reduce(
-    (sum, item) => sum + (item.kind === 'transaction' && item.flow === 'expense' ? item.amount : 0),
+    (sum, item) => sum + (item.kind === 'transaction' && !item.isSyncMirror && item.flow === 'expense' ? item.amount : 0),
     0
   );
 
@@ -316,7 +341,7 @@ export function Transactions() {
                 type="button"
                 className="ledger-row-hit"
                 aria-label={`Edit ${item.kind === 'transfer' ? 'transfer' : 'transaction'} ${item.description}`}
-                onClick={() => navigate(item.kind === 'transfer' ? `/transfer/${item.id}` : `/transactions/${item.id}/edit`, { state: { ledgerFilters: currentLedgerFilters } })}
+                onClick={() => navigate(item.kind === 'transfer' ? `/transfer/${item.id}` : `/transactions/${item.transactionIds[0]}/edit`, { state: { ledgerFilters: currentLedgerFilters } })}
               />
 
               <div className={`ledger-mark ${item.kind}`} aria-hidden="true">
