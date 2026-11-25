@@ -67,6 +67,10 @@ export class CarinaDatabase extends Dexie{
         await tx.table('categories').update(child.id,{isArchived:true});
       }
     });
+    // Version 9 indexes groupId so split transaction groups can be loaded via where('groupId').
+    this.version(9).stores({
+      transactions:'id,accountId,categoryId,subcategoryId,personId,itemProfileId,flow,dateTime,syncAccountId,groupId'
+    });
   }
 }
 export const db=new CarinaDatabase();
