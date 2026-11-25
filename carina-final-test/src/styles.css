@@ -278,3 +278,7 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 /* Fixed split-group members are informational labels, not selectable buttons. */
 .quick-form .edit-group-people{display:flex;flex-wrap:wrap;gap:8px;margin:7px 0 4px;}
 .quick-form .edit-group-person{display:inline-flex;align-items:center;justify-content:center;width:auto;min-width:0;padding:8px 14px;border:1px solid var(--line);border-radius:2px;background:rgba(255,252,244,.72);color:var(--ink);font-size:13px;letter-spacing:0;}
+
+.quick-form button.edit-group-person{appearance:none;cursor:pointer;min-height:40px;}
+.quick-form button.edit-group-person.selected{background:var(--ink);border-color:var(--ink);color:#fff;}
+.quick-form button.edit-group-person:not(.selected){background:rgba(255,252,244,.72);color:var(--ink);}
