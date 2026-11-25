@@ -274,3 +274,7 @@ button:has(img[src*="feather.png"]) img,a:has(img[src*="feather.png"]) img{displ
 .ledger-filter-panel .ledger-filter-field{display:flex;flex-direction:column;align-items:stretch;min-width:0;width:100%;margin:0;box-sizing:border-box}
 .ledger-filter-panel .ledger-filter-field .date-picker-wrap{width:100%;min-width:0}
 @media(max-width:430px){.ledger-filter-panel .ledger-filter-grid{gap:8px}}
+
+/* Fixed split-group members are informational labels, not selectable buttons. */
+.quick-form .edit-group-people{display:flex;flex-wrap:wrap;gap:8px;margin:7px 0 4px;}
+.quick-form .edit-group-person{display:inline-flex;align-items:center;justify-content:center;width:auto;min-width:0;padding:8px 14px;border:1px solid var(--line);border-radius:2px;background:rgba(255,252,244,.72);color:var(--ink);font-size:13px;letter-spacing:0;}
